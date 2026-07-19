@@ -10,33 +10,102 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AutorizacaoSlugRouteImport } from './routes/autorizacao.$slug'
+import { Route as AdminVendedoresRouteImport } from './routes/admin.vendedores'
+import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
+import { Route as AdminAutorizacoesRouteImport } from './routes/admin.autorizacoes'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AutorizacaoSlugRoute = AutorizacaoSlugRouteImport.update({
+  id: '/autorizacao/$slug',
+  path: '/autorizacao/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminVendedoresRoute = AdminVendedoresRouteImport.update({
+  id: '/admin/vendedores',
+  path: '/admin/vendedores',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminDashboardRoute = AdminDashboardRouteImport.update({
+  id: '/admin/dashboard',
+  path: '/admin/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAutorizacoesRoute = AdminAutorizacoesRouteImport.update({
+  id: '/admin/autorizacoes',
+  path: '/admin/autorizacoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin/autorizacoes': typeof AdminAutorizacoesRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/vendedores': typeof AdminVendedoresRoute
+  '/autorizacao/$slug': typeof AutorizacaoSlugRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin/autorizacoes': typeof AdminAutorizacoesRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/vendedores': typeof AdminVendedoresRoute
+  '/autorizacao/$slug': typeof AutorizacaoSlugRoute
+  '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin/autorizacoes': typeof AdminAutorizacoesRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/vendedores': typeof AdminVendedoresRoute
+  '/autorizacao/$slug': typeof AutorizacaoSlugRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/admin/autorizacoes'
+    | '/admin/dashboard'
+    | '/admin/vendedores'
+    | '/autorizacao/$slug'
+    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/admin/autorizacoes'
+    | '/admin/dashboard'
+    | '/admin/vendedores'
+    | '/autorizacao/$slug'
+    | '/admin'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin/autorizacoes'
+    | '/admin/dashboard'
+    | '/admin/vendedores'
+    | '/autorizacao/$slug'
+    | '/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminAutorizacoesRoute: typeof AdminAutorizacoesRoute
+  AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminVendedoresRoute: typeof AdminVendedoresRoute
+  AutorizacaoSlugRoute: typeof AutorizacaoSlugRoute
+  AdminIndexRoute: typeof AdminIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +117,52 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/autorizacao/$slug': {
+      id: '/autorizacao/$slug'
+      path: '/autorizacao/$slug'
+      fullPath: '/autorizacao/$slug'
+      preLoaderRoute: typeof AutorizacaoSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/vendedores': {
+      id: '/admin/vendedores'
+      path: '/admin/vendedores'
+      fullPath: '/admin/vendedores'
+      preLoaderRoute: typeof AdminVendedoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/dashboard': {
+      id: '/admin/dashboard'
+      path: '/admin/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AdminDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/autorizacoes': {
+      id: '/admin/autorizacoes'
+      path: '/admin/autorizacoes'
+      fullPath: '/admin/autorizacoes'
+      preLoaderRoute: typeof AdminAutorizacoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminAutorizacoesRoute: AdminAutorizacoesRoute,
+  AdminDashboardRoute: AdminDashboardRoute,
+  AdminVendedoresRoute: AdminVendedoresRoute,
+  AutorizacaoSlugRoute: AutorizacaoSlugRoute,
+  AdminIndexRoute: AdminIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
