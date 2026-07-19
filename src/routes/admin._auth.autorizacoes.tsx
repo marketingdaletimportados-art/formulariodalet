@@ -111,6 +111,47 @@ function AutorizacoesPage() {
     onError: () => toast.error("Não foi possível atualizar. Verifique sua permissão."),
   });
 
+  const getSignedUrl = useServerFn(getAuthorizationPdfSignedUrl);
+  const regenerate = useServerFn(regenerateAuthorizationPdf);
+
+  async function openPdf(id: string, mode: "view" | "download" | "print") {
+    try {
+      const res = await getSignedUrl({ data: { authorizationId: id } });
+      if (!res.ok) {
+        toast.error("Não foi possível acessar o arquivo.");
+        return;
+      }
+      if (mode === "download") {
+        const a = document.createElement("a");
+        a.href = res.signedUrl;
+        a.download = res.filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } else {
+        const win = window.open(res.signedUrl, "_blank", "noopener,noreferrer");
+        if (mode === "print" && win) {
+          setTimeout(() => { try { win.print(); } catch { /* ignore */ } }, 800);
+        }
+      }
+    } catch {
+      toast.error("Não foi possível acessar o arquivo.");
+    }
+  }
+
+  const regenerating = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await regenerate({ data: { authorizationId: id } });
+      if (!res.ok) throw new Error(res.error);
+      return res;
+    },
+    onSuccess: () => {
+      toast.success("PDF gerado com sucesso.");
+      qc.invalidateQueries({ queryKey: ["admin-authorizations"] });
+    },
+    onError: () => toast.error("Não foi possível gerar o documento."),
+  });
+
   return (
     <AdminLayout title="Autorizações">
       <Card className="mb-4">
