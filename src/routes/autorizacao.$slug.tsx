@@ -115,30 +115,34 @@ function AutorizacaoForm({ seller }: { seller: { id: string; name: string; depar
   const termo = useMemo(() => buildTermo(values), [values]);
 
   const generatePdf = useServerFn(generateInitialAuthorizationPdf);
+  const createAuthorization = useServerFn(createWithdrawalAuthorization);
 
   async function onSubmit(data: FormData) {
     setSubmitError(null);
-    const now = new Date().toISOString();
-    const { data: created, error } = await supabase
-      .from("withdrawal_authorizations")
-      .insert({
-        seller_id: seller.id,
-        buyer_name: data.compradorNome.trim(),
-        buyer_cpf: data.compradorCPF,
-        buyer_phone: data.compradorTelefone,
-        order_number: data.pedido.trim(),
-        authorized_person_name: data.autorizadoNome.trim(),
-        authorized_person_cpf: data.autorizadoCPF,
-        products_description: data.produtos.trim(),
-        customer_notes: data.observacoes?.trim() || null,
-        terms_accepted: true,
-        terms_accepted_at: now,
-        status: "awaiting_pickup",
-      })
-      .select("id, protocol")
-      .single();
-
-    if (error || !created) {
+    let created: { id: string; protocol: string };
+    try {
+      const result = await createAuthorization({
+        data: {
+          seller_slug: slug,
+          buyer_name: data.compradorNome,
+          buyer_cpf: data.compradorCPF,
+          buyer_phone: data.compradorTelefone,
+          order_number: data.pedido,
+          authorized_person_name: data.autorizadoNome,
+          authorized_person_cpf: data.autorizadoCPF,
+          products_description: data.produtos,
+          customer_notes: data.observacoes || null,
+          terms_accepted: true,
+        },
+      });
+      if (!result.ok) {
+        console.error("Erro ao criar autorização:", result.error);
+        setSubmitError("Não foi possível gerar a autorização. Verifique os dados e tente novamente.");
+        return;
+      }
+      created = { id: result.id, protocol: result.protocol };
+    } catch (error) {
+      console.error("Erro ao criar autorização:", error);
       setSubmitError("Não foi possível gerar a autorização. Verifique os dados e tente novamente.");
       return;
     }
