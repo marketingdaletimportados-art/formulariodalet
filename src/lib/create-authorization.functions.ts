@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
+import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { isValidCPF } from "./formatters";
+import type { Database } from "@/integrations/supabase/types";
 
 const payloadSchema = z.object({
   seller_slug: z.string().trim().min(1).max(120),
@@ -17,6 +19,35 @@ const payloadSchema = z.object({
 
 function digits(v: string) {
   return v.replace(/\D/g, "");
+}
+
+function isNewSupabaseApiKey(value: string): boolean {
+  return value.startsWith("sb_publishable_") || value.startsWith("sb_secret_");
+}
+
+function createServerSupabaseClient() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) {
+    throw new Error("Supabase runtime não configurado (SUPABASE_URL/SUPABASE_PUBLISHABLE_KEY).");
+  }
+  return createClient<Database>(url, key, {
+    auth: {
+      storage: undefined,
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+    global: {
+      fetch: (input, init) => {
+        const headers = new Headers(init?.headers);
+        if (isNewSupabaseApiKey(key) && headers.get("Authorization") === `Bearer ${key}`) {
+          headers.delete("Authorization");
+        }
+        headers.set("apikey", key);
+        return fetch(input, { ...init, headers });
+      },
+    },
+  });
 }
 
 export const createWithdrawalAuthorization = createServerFn({ method: "POST" })
@@ -36,9 +67,9 @@ export const createWithdrawalAuthorization = createServerFn({ method: "POST" })
       return { ok: false as const, error: "invalid_phone" };
     }
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabase = createServerSupabaseClient();
 
-    const { data: seller, error: sellerError } = await supabaseAdmin
+    const { data: seller, error: sellerError } = await supabase
       .from("sellers")
       .select("id, active")
       .eq("slug", data.seller_slug)
@@ -53,7 +84,7 @@ export const createWithdrawalAuthorization = createServerFn({ method: "POST" })
     }
 
     const now = new Date().toISOString();
-    const { data: created, error: insertError } = await supabaseAdmin
+    const { data: created, error: insertError } = await supabase
       .from("withdrawal_authorizations")
       .insert({
         seller_id: seller.id,
