@@ -354,7 +354,22 @@ function SuccessScreen({ info }: { info: SuccessInfo }) {
             <InfoRow label="Pessoa autorizada" value={info.authorizedName} />
             <InfoRow label="Número do pedido" value={info.orderNumber} />
             <InfoRow label="Vendedor responsável" value={info.sellerName} />
-            <div className="mt-4 rounded-md border border-amber-300/60 bg-amber-50 p-3 text-sm text-amber-900">
+
+            {info.pdfSignedUrl ? (
+              <a href={info.pdfSignedUrl} target="_blank" rel="noopener noreferrer"
+                 download={info.pdfFilename ?? undefined}
+                 className="mt-4">
+                <Button size="lg" className="h-14 w-full text-base">
+                  <Download className="mr-2 h-5 w-5" /> Baixar autorização em PDF
+                </Button>
+              </a>
+            ) : info.pdfError ? (
+              <div className="mt-4 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                {info.pdfError}
+              </div>
+            ) : null}
+
+            <div className="mt-2 rounded-md border border-amber-300/60 bg-amber-50 p-3 text-sm text-amber-900">
               A pessoa autorizada deverá apresentar documento oficial com foto no momento da retirada.
             </div>
           </CardContent>
