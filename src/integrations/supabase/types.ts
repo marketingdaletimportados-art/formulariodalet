@@ -14,13 +14,134 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      authorization_protocol_counters: {
+        Row: {
+          last_number: number
+          year: number
+        }
+        Insert: {
+          last_number?: number
+          year: number
+        }
+        Update: {
+          last_number?: number
+          year?: number
+        }
+        Relationships: []
+      }
+      sellers: {
+        Row: {
+          active: boolean
+          created_at: string
+          department: string | null
+          id: string
+          name: string
+          phone: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          department?: string | null
+          id?: string
+          name: string
+          phone: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          department?: string | null
+          id?: string
+          name?: string
+          phone?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      withdrawal_authorizations: {
+        Row: {
+          authorized_person_cpf: string
+          authorized_person_name: string
+          buyer_cpf: string
+          buyer_name: string
+          buyer_phone: string
+          cancelled_at: string | null
+          created_at: string
+          customer_notes: string | null
+          id: string
+          order_number: string
+          picked_up_at: string | null
+          products_description: string
+          protocol: string
+          seller_id: string
+          status: string
+          submitted_at: string
+          terms_accepted: boolean
+          terms_accepted_at: string
+          updated_at: string
+        }
+        Insert: {
+          authorized_person_cpf: string
+          authorized_person_name: string
+          buyer_cpf: string
+          buyer_name: string
+          buyer_phone: string
+          cancelled_at?: string | null
+          created_at?: string
+          customer_notes?: string | null
+          id?: string
+          order_number: string
+          picked_up_at?: string | null
+          products_description: string
+          protocol?: string
+          seller_id: string
+          status?: string
+          submitted_at?: string
+          terms_accepted: boolean
+          terms_accepted_at: string
+          updated_at?: string
+        }
+        Update: {
+          authorized_person_cpf?: string
+          authorized_person_name?: string
+          buyer_cpf?: string
+          buyer_name?: string
+          buyer_phone?: string
+          cancelled_at?: string | null
+          created_at?: string
+          customer_notes?: string | null
+          id?: string
+          order_number?: string
+          picked_up_at?: string | null
+          products_description?: string
+          protocol?: string
+          seller_id?: string
+          status?: string
+          submitted_at?: string
+          terms_accepted?: boolean
+          terms_accepted_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "withdrawal_authorizations_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "sellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_authorization_protocol: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
