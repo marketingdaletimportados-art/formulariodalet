@@ -42,6 +42,9 @@ type AuthRow = {
   picked_up_at: string | null;
   cancelled_at: string | null;
   seller_id: string;
+  pdf_generation_status: string;
+  pdf_filename: string | null;
+  pdf_generated_at: string | null;
   sellers: { name: string } | null;
 };
 
