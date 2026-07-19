@@ -280,6 +280,34 @@ function AutorizacoesPage() {
                   </div>
                 )}
               </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {viewing.pdf_generation_status === "generated" ? (
+                  <>
+                    <Button variant="outline" size="sm" onClick={() => openPdf(viewing.id, "view")}>
+                      <FileText className="mr-2 h-4 w-4" /> Visualizar PDF
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => openPdf(viewing.id, "download")}>
+                      <Download className="mr-2 h-4 w-4" /> Baixar
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => openPdf(viewing.id, "print")}>
+                      Imprimir
+                    </Button>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <AlertCircle className="h-4 w-4" />
+                    {viewing.pdf_generation_status === "failed" ? "Falha ao gerar o PDF." : "PDF ainda não gerado."}
+                  </div>
+                )}
+                <Button variant="secondary" size="sm"
+                  onClick={() => regenerating.mutate(viewing.id)}
+                  disabled={regenerating.isPending}>
+                  {regenerating.isPending
+                    ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    : <RefreshCw className="mr-2 h-4 w-4" />}
+                  Gerar PDF novamente
+                </Button>
+              </div>
               {viewing.status === "awaiting_pickup" && (
                 <DialogFooter className="gap-2">
                   <Button variant="outline" onClick={() => updateStatus.mutate({ id: viewing.id, to: "cancelled" })}>
