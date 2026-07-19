@@ -74,6 +74,11 @@ export type Database = {
           customer_notes: string | null
           id: string
           order_number: string
+          pdf_filename: string | null
+          pdf_generated_at: string | null
+          pdf_generation_error: string | null
+          pdf_generation_status: string
+          pdf_path: string | null
           picked_up_at: string | null
           products_description: string
           protocol: string
@@ -95,6 +100,11 @@ export type Database = {
           customer_notes?: string | null
           id?: string
           order_number: string
+          pdf_filename?: string | null
+          pdf_generated_at?: string | null
+          pdf_generation_error?: string | null
+          pdf_generation_status?: string
+          pdf_path?: string | null
           picked_up_at?: string | null
           products_description: string
           protocol?: string
@@ -116,6 +126,11 @@ export type Database = {
           customer_notes?: string | null
           id?: string
           order_number?: string
+          pdf_filename?: string | null
+          pdf_generated_at?: string | null
+          pdf_generation_error?: string | null
+          pdf_generation_status?: string
+          pdf_path?: string | null
           picked_up_at?: string | null
           products_description?: string
           protocol?: string
