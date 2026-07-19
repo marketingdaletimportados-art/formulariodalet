@@ -12,9 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AutorizacaoSlugRouteImport } from './routes/autorizacao.$slug'
-import { Route as AdminVendedoresRouteImport } from './routes/admin.vendedores'
-import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
-import { Route as AdminAutorizacoesRouteImport } from './routes/admin.autorizacoes'
+import { Route as AdminAuthVendedoresRouteImport } from './routes/admin._auth.vendedores'
+import { Route as AdminAuthDashboardRouteImport } from './routes/admin._auth.dashboard'
+import { Route as AdminAuthAutorizacoesRouteImport } from './routes/admin._auth.autorizacoes'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -31,81 +31,81 @@ const AutorizacaoSlugRoute = AutorizacaoSlugRouteImport.update({
   path: '/autorizacao/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminVendedoresRoute = AdminVendedoresRouteImport.update({
-  id: '/admin/vendedores',
+const AdminAuthVendedoresRoute = AdminAuthVendedoresRouteImport.update({
+  id: '/admin/_auth/vendedores',
   path: '/admin/vendedores',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminDashboardRoute = AdminDashboardRouteImport.update({
-  id: '/admin/dashboard',
+const AdminAuthDashboardRoute = AdminAuthDashboardRouteImport.update({
+  id: '/admin/_auth/dashboard',
   path: '/admin/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminAutorizacoesRoute = AdminAutorizacoesRouteImport.update({
-  id: '/admin/autorizacoes',
+const AdminAuthAutorizacoesRoute = AdminAuthAutorizacoesRouteImport.update({
+  id: '/admin/_auth/autorizacoes',
   path: '/admin/autorizacoes',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin/autorizacoes': typeof AdminAutorizacoesRoute
-  '/admin/dashboard': typeof AdminDashboardRoute
-  '/admin/vendedores': typeof AdminVendedoresRoute
   '/autorizacao/$slug': typeof AutorizacaoSlugRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/autorizacoes': typeof AdminAuthAutorizacoesRoute
+  '/admin/dashboard': typeof AdminAuthDashboardRoute
+  '/admin/vendedores': typeof AdminAuthVendedoresRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin/autorizacoes': typeof AdminAutorizacoesRoute
-  '/admin/dashboard': typeof AdminDashboardRoute
-  '/admin/vendedores': typeof AdminVendedoresRoute
   '/autorizacao/$slug': typeof AutorizacaoSlugRoute
   '/admin': typeof AdminIndexRoute
+  '/admin/autorizacoes': typeof AdminAuthAutorizacoesRoute
+  '/admin/dashboard': typeof AdminAuthDashboardRoute
+  '/admin/vendedores': typeof AdminAuthVendedoresRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin/autorizacoes': typeof AdminAutorizacoesRoute
-  '/admin/dashboard': typeof AdminDashboardRoute
-  '/admin/vendedores': typeof AdminVendedoresRoute
   '/autorizacao/$slug': typeof AutorizacaoSlugRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/_auth/autorizacoes': typeof AdminAuthAutorizacoesRoute
+  '/admin/_auth/dashboard': typeof AdminAuthDashboardRoute
+  '/admin/_auth/vendedores': typeof AdminAuthVendedoresRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/autorizacao/$slug'
+    | '/admin/'
     | '/admin/autorizacoes'
     | '/admin/dashboard'
     | '/admin/vendedores'
-    | '/autorizacao/$slug'
-    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/autorizacao/$slug'
+    | '/admin'
     | '/admin/autorizacoes'
     | '/admin/dashboard'
     | '/admin/vendedores'
-    | '/autorizacao/$slug'
-    | '/admin'
   id:
     | '__root__'
     | '/'
-    | '/admin/autorizacoes'
-    | '/admin/dashboard'
-    | '/admin/vendedores'
     | '/autorizacao/$slug'
     | '/admin/'
+    | '/admin/_auth/autorizacoes'
+    | '/admin/_auth/dashboard'
+    | '/admin/_auth/vendedores'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminAutorizacoesRoute: typeof AdminAutorizacoesRoute
-  AdminDashboardRoute: typeof AdminDashboardRoute
-  AdminVendedoresRoute: typeof AdminVendedoresRoute
   AutorizacaoSlugRoute: typeof AutorizacaoSlugRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminAuthAutorizacoesRoute: typeof AdminAuthAutorizacoesRoute
+  AdminAuthDashboardRoute: typeof AdminAuthDashboardRoute
+  AdminAuthVendedoresRoute: typeof AdminAuthVendedoresRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -131,25 +131,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AutorizacaoSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/vendedores': {
-      id: '/admin/vendedores'
+    '/admin/_auth/vendedores': {
+      id: '/admin/_auth/vendedores'
       path: '/admin/vendedores'
       fullPath: '/admin/vendedores'
-      preLoaderRoute: typeof AdminVendedoresRouteImport
+      preLoaderRoute: typeof AdminAuthVendedoresRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/dashboard': {
-      id: '/admin/dashboard'
+    '/admin/_auth/dashboard': {
+      id: '/admin/_auth/dashboard'
       path: '/admin/dashboard'
       fullPath: '/admin/dashboard'
-      preLoaderRoute: typeof AdminDashboardRouteImport
+      preLoaderRoute: typeof AdminAuthDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/autorizacoes': {
-      id: '/admin/autorizacoes'
+    '/admin/_auth/autorizacoes': {
+      id: '/admin/_auth/autorizacoes'
       path: '/admin/autorizacoes'
       fullPath: '/admin/autorizacoes'
-      preLoaderRoute: typeof AdminAutorizacoesRouteImport
+      preLoaderRoute: typeof AdminAuthAutorizacoesRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -157,11 +157,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminAutorizacoesRoute: AdminAutorizacoesRoute,
-  AdminDashboardRoute: AdminDashboardRoute,
-  AdminVendedoresRoute: AdminVendedoresRoute,
   AutorizacaoSlugRoute: AutorizacaoSlugRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminAuthAutorizacoesRoute: AdminAuthAutorizacoesRoute,
+  AdminAuthDashboardRoute: AdminAuthDashboardRoute,
+  AdminAuthVendedoresRoute: AdminAuthVendedoresRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

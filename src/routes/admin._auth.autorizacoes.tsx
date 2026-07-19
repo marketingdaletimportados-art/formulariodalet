@@ -17,7 +17,7 @@ import { Eye, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { maskCPFDisplay } from "@/lib/formatters";
 
-export const Route = createFileRoute("/admin/autorizacoes")({
+export const Route = createFileRoute("/admin/_auth/autorizacoes")({
   head: () => ({ meta: [{ title: "Autorizações — Dalet Importados" }] }),
   component: AutorizacoesPage,
 });

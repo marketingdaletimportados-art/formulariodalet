@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileText, Clock, PackageCheck, XCircle, Send, MoreHorizontal } from "lucide-react";
 
-export const Route = createFileRoute("/admin/dashboard")({
+export const Route = createFileRoute("/admin/_auth/dashboard")({
   head: () => ({ meta: [{ title: "Visão geral — Dalet Importados" }] }),
   component: DashboardPage,
 });
