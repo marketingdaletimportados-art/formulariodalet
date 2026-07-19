@@ -78,14 +78,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Autorização de Retirada — Dalet Importados" },
+      { name: "description", content: "Sistema de autorização de retirada de mercadorias da Dalet Importados." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Autorização de Retirada — Dalet Importados" },
+      { property: "og:description", content: "Sistema de autorização de retirada de mercadorias da Dalet Importados." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Autorização de Retirada — Dalet Importados" },
+      { name: "twitter:description", content: "Sistema de autorização de retirada de mercadorias da Dalet Importados." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b47a569c-3e91-4e04-845c-7f32ab19332b/id-preview-f398ab87--1e1d8914-a19e-48a6-934d-e574ccbdeffe.lovable.app-1784472937259.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b47a569c-3e91-4e04-845c-7f32ab19332b/id-preview-f398ab87--1e1d8914-a19e-48a6-934d-e574ccbdeffe.lovable.app-1784472937259.png" },
     ],
     links: [
       {
