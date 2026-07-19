@@ -338,3 +338,9 @@ function Info({ label, value }: { label: string; value: string }) {
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 }
+
+function PdfBadge({ status }: { status: string }) {
+  if (status === "generated") return <Badge variant="default">PDF gerado</Badge>;
+  if (status === "failed") return <Badge variant="destructive">Erro ao gerar</Badge>;
+  return <Badge variant="secondary">Pendente</Badge>;
+}
