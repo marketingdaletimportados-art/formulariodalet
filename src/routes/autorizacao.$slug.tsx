@@ -94,10 +94,10 @@ function AutorizacaoPage() {
     );
   }
 
-  return <AutorizacaoForm seller={sellerQuery.data} />;
+  return <AutorizacaoForm seller={sellerQuery.data} slug={slug} />;
 }
 
-function AutorizacaoForm({ seller }: { seller: { id: string; name: string; department: string | null } }) {
+function AutorizacaoForm({ seller, slug }: { seller: { id: string; name: string; department: string | null }; slug: string }) {
   const [success, setSuccess] = useState<SuccessInfo | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
