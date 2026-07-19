@@ -17,7 +17,7 @@ import { Plus, Search, Pencil, Power, Copy, Check, Loader2 } from "lucide-react"
 import { toast } from "sonner";
 import { slugify, maskPhone } from "@/lib/formatters";
 
-export const Route = createFileRoute("/admin/vendedores")({
+export const Route = createFileRoute("/admin/_auth/vendedores")({
   head: () => ({ meta: [{ title: "Vendedores — Dalet Importados" }] }),
   component: VendedoresPage,
 });

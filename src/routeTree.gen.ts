@@ -9,13 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AutorizacaoSlugRouteImport } from './routes/autorizacao.$slug'
-import { Route as AdminVendedoresRouteImport } from './routes/admin.vendedores'
-import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
-import { Route as AdminAutorizacoesRouteImport } from './routes/admin.autorizacoes'
+import { Route as AdminAuthRouteImport } from './routes/admin._auth'
+import { Route as AdminAuthVendedoresRouteImport } from './routes/admin._auth.vendedores'
+import { Route as AdminAuthDashboardRouteImport } from './routes/admin._auth.dashboard'
+import { Route as AdminAuthAutorizacoesRouteImport } from './routes/admin._auth.autorizacoes'
 
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -31,85 +38,106 @@ const AutorizacaoSlugRoute = AutorizacaoSlugRouteImport.update({
   path: '/autorizacao/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminVendedoresRoute = AdminVendedoresRouteImport.update({
-  id: '/admin/vendedores',
-  path: '/admin/vendedores',
+const AdminAuthRoute = AdminAuthRouteImport.update({
+  id: '/admin/_auth',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminDashboardRoute = AdminDashboardRouteImport.update({
-  id: '/admin/dashboard',
-  path: '/admin/dashboard',
-  getParentRoute: () => rootRouteImport,
+const AdminAuthVendedoresRoute = AdminAuthVendedoresRouteImport.update({
+  id: '/vendedores',
+  path: '/vendedores',
+  getParentRoute: () => AdminAuthRoute,
 } as any)
-const AdminAutorizacoesRoute = AdminAutorizacoesRouteImport.update({
-  id: '/admin/autorizacoes',
-  path: '/admin/autorizacoes',
-  getParentRoute: () => rootRouteImport,
+const AdminAuthDashboardRoute = AdminAuthDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AdminAuthRoute,
+} as any)
+const AdminAuthAutorizacoesRoute = AdminAuthAutorizacoesRouteImport.update({
+  id: '/autorizacoes',
+  path: '/autorizacoes',
+  getParentRoute: () => AdminAuthRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin/autorizacoes': typeof AdminAutorizacoesRoute
-  '/admin/dashboard': typeof AdminDashboardRoute
-  '/admin/vendedores': typeof AdminVendedoresRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/admin': typeof AdminAuthRouteWithChildren
   '/autorizacao/$slug': typeof AutorizacaoSlugRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/autorizacoes': typeof AdminAuthAutorizacoesRoute
+  '/admin/dashboard': typeof AdminAuthDashboardRoute
+  '/admin/vendedores': typeof AdminAuthVendedoresRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin/autorizacoes': typeof AdminAutorizacoesRoute
-  '/admin/dashboard': typeof AdminDashboardRoute
-  '/admin/vendedores': typeof AdminVendedoresRoute
-  '/autorizacao/$slug': typeof AutorizacaoSlugRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/admin': typeof AdminIndexRoute
+  '/autorizacao/$slug': typeof AutorizacaoSlugRoute
+  '/admin/autorizacoes': typeof AdminAuthAutorizacoesRoute
+  '/admin/dashboard': typeof AdminAuthDashboardRoute
+  '/admin/vendedores': typeof AdminAuthVendedoresRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin/autorizacoes': typeof AdminAutorizacoesRoute
-  '/admin/dashboard': typeof AdminDashboardRoute
-  '/admin/vendedores': typeof AdminVendedoresRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/admin/_auth': typeof AdminAuthRouteWithChildren
   '/autorizacao/$slug': typeof AutorizacaoSlugRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/_auth/autorizacoes': typeof AdminAuthAutorizacoesRoute
+  '/admin/_auth/dashboard': typeof AdminAuthDashboardRoute
+  '/admin/_auth/vendedores': typeof AdminAuthVendedoresRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/reset-password'
+    | '/admin'
+    | '/autorizacao/$slug'
+    | '/admin/'
     | '/admin/autorizacoes'
     | '/admin/dashboard'
     | '/admin/vendedores'
-    | '/autorizacao/$slug'
-    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/reset-password'
+    | '/admin'
+    | '/autorizacao/$slug'
     | '/admin/autorizacoes'
     | '/admin/dashboard'
     | '/admin/vendedores'
-    | '/autorizacao/$slug'
-    | '/admin'
   id:
     | '__root__'
     | '/'
-    | '/admin/autorizacoes'
-    | '/admin/dashboard'
-    | '/admin/vendedores'
+    | '/reset-password'
+    | '/admin/_auth'
     | '/autorizacao/$slug'
     | '/admin/'
+    | '/admin/_auth/autorizacoes'
+    | '/admin/_auth/dashboard'
+    | '/admin/_auth/vendedores'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminAutorizacoesRoute: typeof AdminAutorizacoesRoute
-  AdminDashboardRoute: typeof AdminDashboardRoute
-  AdminVendedoresRoute: typeof AdminVendedoresRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  AdminAuthRoute: typeof AdminAuthRouteWithChildren
   AutorizacaoSlugRoute: typeof AutorizacaoSlugRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -131,35 +159,57 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AutorizacaoSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/vendedores': {
-      id: '/admin/vendedores'
-      path: '/admin/vendedores'
+    '/admin/_auth': {
+      id: '/admin/_auth'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminAuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/_auth/vendedores': {
+      id: '/admin/_auth/vendedores'
+      path: '/vendedores'
       fullPath: '/admin/vendedores'
-      preLoaderRoute: typeof AdminVendedoresRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AdminAuthVendedoresRouteImport
+      parentRoute: typeof AdminAuthRoute
     }
-    '/admin/dashboard': {
-      id: '/admin/dashboard'
-      path: '/admin/dashboard'
+    '/admin/_auth/dashboard': {
+      id: '/admin/_auth/dashboard'
+      path: '/dashboard'
       fullPath: '/admin/dashboard'
-      preLoaderRoute: typeof AdminDashboardRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AdminAuthDashboardRouteImport
+      parentRoute: typeof AdminAuthRoute
     }
-    '/admin/autorizacoes': {
-      id: '/admin/autorizacoes'
-      path: '/admin/autorizacoes'
+    '/admin/_auth/autorizacoes': {
+      id: '/admin/_auth/autorizacoes'
+      path: '/autorizacoes'
       fullPath: '/admin/autorizacoes'
-      preLoaderRoute: typeof AdminAutorizacoesRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AdminAuthAutorizacoesRouteImport
+      parentRoute: typeof AdminAuthRoute
     }
   }
 }
 
+interface AdminAuthRouteChildren {
+  AdminAuthAutorizacoesRoute: typeof AdminAuthAutorizacoesRoute
+  AdminAuthDashboardRoute: typeof AdminAuthDashboardRoute
+  AdminAuthVendedoresRoute: typeof AdminAuthVendedoresRoute
+}
+
+const AdminAuthRouteChildren: AdminAuthRouteChildren = {
+  AdminAuthAutorizacoesRoute: AdminAuthAutorizacoesRoute,
+  AdminAuthDashboardRoute: AdminAuthDashboardRoute,
+  AdminAuthVendedoresRoute: AdminAuthVendedoresRoute,
+}
+
+const AdminAuthRouteWithChildren = AdminAuthRoute._addFileChildren(
+  AdminAuthRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminAutorizacoesRoute: AdminAutorizacoesRoute,
-  AdminDashboardRoute: AdminDashboardRoute,
-  AdminVendedoresRoute: AdminVendedoresRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  AdminAuthRoute: AdminAuthRouteWithChildren,
   AutorizacaoSlugRoute: AutorizacaoSlugRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
