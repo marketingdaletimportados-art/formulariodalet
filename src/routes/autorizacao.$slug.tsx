@@ -346,7 +346,7 @@ function SuccessScreen({ info }: { info: SuccessInfo }) {
               <CheckCircle2 className="h-8 w-8" />
             </div>
             <CardTitle className="mt-3 text-2xl">Autorização gerada com sucesso!</CardTitle>
-            <CardDescription>Guarde as informações abaixo para conferência.</CardDescription>
+            <CardDescription>Os dados foram registrados e o documento já está disponível.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3">
             <InfoRow label="Protocolo" value={info.protocol} mono />
