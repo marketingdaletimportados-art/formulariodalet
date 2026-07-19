@@ -120,10 +120,8 @@ function RootComponent() {
 
   useEffect(() => {
     let previouslyAuthed: boolean | null = null;
-    const { data: sub } = (
-      // Lazy require to avoid SSR issues; supabase client is safe in browser only.
-      require("@/integrations/supabase/client") as typeof import("@/integrations/supabase/client")
-    ).supabase.auth.onAuthStateChange((event, session) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       const isAuthed = !!session;
       if (previouslyAuthed !== null && previouslyAuthed && !isAuthed) {
