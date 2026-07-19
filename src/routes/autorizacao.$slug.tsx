@@ -14,8 +14,10 @@ import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
 import { DaletLogo } from "@/components/dalet-logo";
-import { User, UserCheck, PackageSearch, MessageSquare, FileCheck2, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
+import { User, UserCheck, PackageSearch, MessageSquare, FileCheck2, CheckCircle2, AlertTriangle, Loader2, Download } from "lucide-react";
 import { maskCPF, maskPhone, isValidCPF } from "@/lib/formatters";
+import { generateInitialAuthorizationPdf } from "@/lib/authorization-pdf.functions";
+import { useServerFn } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/autorizacao/$slug")({
   head: () => ({
@@ -50,6 +52,10 @@ type SuccessInfo = {
   authorizedName: string;
   orderNumber: string;
   sellerName: string;
+  authorizationId: string;
+  pdfSignedUrl: string | null;
+  pdfFilename: string | null;
+  pdfError: string | null;
 };
 
 function AutorizacaoPage() {
@@ -107,6 +113,8 @@ function AutorizacaoForm({ seller }: { seller: { id: string; name: string; depar
   const values = form.watch();
   const termo = useMemo(() => buildTermo(values), [values]);
 
+  const generatePdf = useServerFn(generateInitialAuthorizationPdf);
+
   async function onSubmit(data: FormData) {
     setSubmitError(null);
     const now = new Date().toISOString();
@@ -126,12 +134,27 @@ function AutorizacaoForm({ seller }: { seller: { id: string; name: string; depar
         terms_accepted_at: now,
         status: "awaiting_pickup",
       })
-      .select("protocol")
+      .select("id, protocol")
       .single();
 
     if (error || !created) {
       setSubmitError("Não foi possível gerar a autorização. Verifique os dados e tente novamente.");
       return;
+    }
+
+    let pdfSignedUrl: string | null = null;
+    let pdfFilename: string | null = null;
+    let pdfError: string | null = null;
+    try {
+      const result = await generatePdf({ data: { authorizationId: created.id } });
+      if (result.ok) {
+        pdfSignedUrl = result.signedUrl;
+        pdfFilename = result.filename;
+      } else {
+        pdfError = "A autorização foi salva, mas ocorreu um erro ao gerar o PDF. Você pode entrar em contato com seu vendedor para receber o documento.";
+      }
+    } catch {
+      pdfError = "A autorização foi salva, mas ocorreu um erro ao gerar o PDF. Você pode entrar em contato com seu vendedor para receber o documento.";
     }
 
     setSuccess({
@@ -140,6 +163,10 @@ function AutorizacaoForm({ seller }: { seller: { id: string; name: string; depar
       authorizedName: data.autorizadoNome.trim(),
       orderNumber: data.pedido.trim(),
       sellerName: seller.name,
+      authorizationId: created.id,
+      pdfSignedUrl,
+      pdfFilename,
+      pdfError,
     });
   }
 
@@ -327,7 +354,22 @@ function SuccessScreen({ info }: { info: SuccessInfo }) {
             <InfoRow label="Pessoa autorizada" value={info.authorizedName} />
             <InfoRow label="Número do pedido" value={info.orderNumber} />
             <InfoRow label="Vendedor responsável" value={info.sellerName} />
-            <div className="mt-4 rounded-md border border-amber-300/60 bg-amber-50 p-3 text-sm text-amber-900">
+
+            {info.pdfSignedUrl ? (
+              <a href={info.pdfSignedUrl} target="_blank" rel="noopener noreferrer"
+                 download={info.pdfFilename ?? undefined}
+                 className="mt-4">
+                <Button size="lg" className="h-14 w-full text-base">
+                  <Download className="mr-2 h-5 w-5" /> Baixar autorização em PDF
+                </Button>
+              </a>
+            ) : info.pdfError ? (
+              <div className="mt-4 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                {info.pdfError}
+              </div>
+            ) : null}
+
+            <div className="mt-2 rounded-md border border-amber-300/60 bg-amber-50 p-3 text-sm text-amber-900">
               A pessoa autorizada deverá apresentar documento oficial com foto no momento da retirada.
             </div>
           </CardContent>
