@@ -52,6 +52,10 @@ type SuccessInfo = {
   authorizedName: string;
   orderNumber: string;
   sellerName: string;
+  authorizationId: string;
+  pdfSignedUrl: string | null;
+  pdfFilename: string | null;
+  pdfError: string | null;
 };
 
 function AutorizacaoPage() {
