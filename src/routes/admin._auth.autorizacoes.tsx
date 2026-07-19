@@ -71,7 +71,7 @@ function AutorizacoesPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("withdrawal_authorizations")
-        .select("id, protocol, submitted_at, buyer_name, buyer_cpf, buyer_phone, order_number, authorized_person_name, authorized_person_cpf, products_description, customer_notes, status, picked_up_at, cancelled_at, seller_id, sellers(name)")
+        .select("id, protocol, submitted_at, buyer_name, buyer_cpf, buyer_phone, order_number, authorized_person_name, authorized_person_cpf, products_description, customer_notes, status, picked_up_at, cancelled_at, seller_id, pdf_generation_status, pdf_filename, pdf_generated_at, sellers(name)")
         .order("submitted_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as unknown as AuthRow[];
