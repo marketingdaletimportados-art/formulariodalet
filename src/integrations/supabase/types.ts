@@ -62,6 +62,36 @@ export type Database = {
         }
         Relationships: []
       }
+      system_settings: {
+        Row: {
+          created_at: string
+          id: string
+          pdf_signed_url_expiration_minutes: number
+          updated_at: string
+          webhook_enabled: boolean
+          webhook_secret: string | null
+          webhook_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          pdf_signed_url_expiration_minutes?: number
+          updated_at?: string
+          webhook_enabled?: boolean
+          webhook_secret?: string | null
+          webhook_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          pdf_signed_url_expiration_minutes?: number
+          updated_at?: string
+          webhook_enabled?: boolean
+          webhook_secret?: string | null
+          webhook_url?: string | null
+        }
+        Relationships: []
+      }
       withdrawal_authorizations: {
         Row: {
           authorized_person_cpf: string
