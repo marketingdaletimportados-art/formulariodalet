@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,7 +14,8 @@ import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
 import { DaletLogo } from "@/components/dalet-logo";
-import { User, UserCheck, PackageSearch, MessageSquare, FileCheck2 } from "lucide-react";
+import { User, UserCheck, PackageSearch, MessageSquare, FileCheck2, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
+import { maskCPF, maskPhone, isValidCPF } from "@/lib/formatters";
 
 export const Route = createFileRoute("/autorizacao/$slug")({
   head: () => ({
@@ -24,41 +27,11 @@ export const Route = createFileRoute("/autorizacao/$slug")({
   component: AutorizacaoPage,
 });
 
-// ---------- Máscaras e validação ----------
-function maskCPF(v: string) {
-  return v.replace(/\D/g, "").slice(0, 11)
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-}
-function maskPhone(v: string) {
-  const d = v.replace(/\D/g, "").slice(0, 11);
-  if (d.length <= 10) {
-    return d.replace(/(\d{0,2})(\d{0,4})(\d{0,4}).*/, (_, a, b, c) =>
-      [a && `(${a}`, a && a.length === 2 ? ") " : "", b, c && `-${c}`].filter(Boolean).join(""));
-  }
-  return d.replace(/(\d{2})(\d{5})(\d{0,4}).*/, "($1) $2-$3");
-}
-function isValidCPF(cpf: string) {
-  const c = cpf.replace(/\D/g, "");
-  if (c.length !== 11 || /^(\d)\1+$/.test(c)) return false;
-  let s = 0;
-  for (let i = 0; i < 9; i++) s += parseInt(c[i]) * (10 - i);
-  let d1 = (s * 10) % 11;
-  if (d1 === 10) d1 = 0;
-  if (d1 !== parseInt(c[9])) return false;
-  s = 0;
-  for (let i = 0; i < 10; i++) s += parseInt(c[i]) * (11 - i);
-  let d2 = (s * 10) % 11;
-  if (d2 === 10) d2 = 0;
-  return d2 === parseInt(c[10]);
-}
-
 const schema = z.object({
   compradorNome: z.string().trim().min(3, "Informe o nome completo").max(120, "Máximo de 120 caracteres"),
   compradorCPF: z.string().refine(isValidCPF, "CPF inválido"),
   compradorTelefone: z.string().refine(
-    (v) => v.replace(/\D/g, "").length >= 10 && v.replace(/\D/g, "").length <= 11,
+    (v) => { const d = v.replace(/\D/g, ""); return d.length >= 10 && d.length <= 11; },
     "Telefone inválido",
   ),
   pedido: z.string().trim().min(1, "Informe o número do pedido").max(30, "Máximo de 30 caracteres"),
@@ -71,7 +44,56 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+type SuccessInfo = {
+  protocol: string;
+  buyerName: string;
+  authorizedName: string;
+  orderNumber: string;
+  sellerName: string;
+};
+
 function AutorizacaoPage() {
+  const { slug } = Route.useParams();
+
+  const sellerQuery = useQuery({
+    queryKey: ["public-seller", slug],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("sellers")
+        .select("id, name, department, active")
+        .eq("slug", slug)
+        .eq("active", true)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  if (sellerQuery.isLoading) {
+    return <CenteredMessage><Loader2 className="h-6 w-6 animate-spin text-primary" /></CenteredMessage>;
+  }
+
+  if (!sellerQuery.data) {
+    return (
+      <CenteredMessage>
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+          <AlertTriangle className="h-6 w-6" />
+        </div>
+        <h1 className="mt-4 text-xl font-semibold">Link indisponível</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Este link de autorização não está disponível. Entre em contato com seu vendedor.
+        </p>
+      </CenteredMessage>
+    );
+  }
+
+  return <AutorizacaoForm seller={sellerQuery.data} />;
+}
+
+function AutorizacaoForm({ seller }: { seller: { id: string; name: string; department: string | null } }) {
+  const [success, setSuccess] = useState<SuccessInfo | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -85,8 +107,44 @@ function AutorizacaoPage() {
   const values = form.watch();
   const termo = useMemo(() => buildTermo(values), [values]);
 
-  function onSubmit(_data: FormData) {
-    // Integração futura
+  async function onSubmit(data: FormData) {
+    setSubmitError(null);
+    const now = new Date().toISOString();
+    const { data: created, error } = await supabase
+      .from("withdrawal_authorizations")
+      .insert({
+        seller_id: seller.id,
+        buyer_name: data.compradorNome.trim(),
+        buyer_cpf: data.compradorCPF,
+        buyer_phone: data.compradorTelefone,
+        order_number: data.pedido.trim(),
+        authorized_person_name: data.autorizadoNome.trim(),
+        authorized_person_cpf: data.autorizadoCPF,
+        products_description: data.produtos.trim(),
+        customer_notes: data.observacoes?.trim() || null,
+        terms_accepted: true,
+        terms_accepted_at: now,
+        status: "awaiting_pickup",
+      })
+      .select("protocol")
+      .single();
+
+    if (error || !created) {
+      setSubmitError("Não foi possível gerar a autorização. Verifique os dados e tente novamente.");
+      return;
+    }
+
+    setSuccess({
+      protocol: created.protocol,
+      buyerName: data.compradorNome.trim(),
+      authorizedName: data.autorizadoNome.trim(),
+      orderNumber: data.pedido.trim(),
+      sellerName: seller.name,
+    });
+  }
+
+  if (success) {
+    return <SuccessScreen info={success} />;
   }
 
   return (
@@ -96,7 +154,8 @@ function AutorizacaoPage() {
           <DaletLogo />
           <div className="hidden text-right text-xs text-muted-foreground sm:block">
             Vendedor responsável
-            <div className="text-sm font-medium text-foreground">— a definir —</div>
+            <div className="text-sm font-medium text-foreground">{seller.name}</div>
+            {seller.department && <div className="text-xs text-muted-foreground">{seller.department}</div>}
           </div>
         </div>
       </header>
@@ -109,11 +168,14 @@ function AutorizacaoPage() {
           <p className="mx-auto mt-2 max-w-2xl text-sm text-muted-foreground">
             Preencha rapidamente os dados abaixo para autorizar outra pessoa a retirar sua mercadoria.
           </p>
+          <div className="mt-4 inline-flex items-center gap-2 rounded-full border bg-background px-3 py-1 text-xs sm:hidden">
+            Vendedor: <strong className="text-foreground">{seller.name}</strong>
+            {seller.department && <span className="text-muted-foreground">· {seller.department}</span>}
+          </div>
         </div>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6">
-            {/* Comprador */}
             <SectionCard icon={User} title="Dados do comprador">
               <FormField control={form.control} name="compradorNome" render={({ field }) => (
                 <FormItem className="sm:col-span-2">
@@ -151,7 +213,6 @@ function AutorizacaoPage() {
               )} />
             </SectionCard>
 
-            {/* Pessoa autorizada */}
             <SectionCard icon={UserCheck} title="Pessoa autorizada">
               <FormField control={form.control} name="autorizadoNome" render={({ field }) => (
                 <FormItem className="sm:col-span-2">
@@ -172,7 +233,6 @@ function AutorizacaoPage() {
               )} />
             </SectionCard>
 
-            {/* Produtos */}
             <SectionCard icon={PackageSearch} title="Produtos">
               <FormField control={form.control} name="produtos" render={({ field }) => (
                 <FormItem className="sm:col-span-2">
@@ -187,7 +247,6 @@ function AutorizacaoPage() {
               )} />
             </SectionCard>
 
-            {/* Observações */}
             <SectionCard icon={MessageSquare} title="Observações" description="Campo opcional.">
               <FormField control={form.control} name="observacoes" render={({ field }) => (
                 <FormItem className="sm:col-span-2">
@@ -200,7 +259,6 @@ function AutorizacaoPage() {
               )} />
             </SectionCard>
 
-            {/* Termo */}
             <SectionCard icon={FileCheck2} title="Termo de autorização">
               <div className="sm:col-span-2 whitespace-pre-line rounded-md border bg-muted/40 p-4 text-sm leading-relaxed text-muted-foreground">
                 {termo}
@@ -223,14 +281,77 @@ function AutorizacaoPage() {
               )} />
             </SectionCard>
 
+            {submitError && (
+              <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                {submitError}
+              </div>
+            )}
+
             <div className="sticky bottom-4 z-10">
-              <Button type="submit" size="lg" className="h-14 w-full text-base shadow-lg">
-                Gerar autorização
+              <Button
+                type="submit"
+                size="lg"
+                className="h-14 w-full text-base shadow-lg"
+                disabled={form.formState.isSubmitting}
+              >
+                {form.formState.isSubmitting ? (
+                  <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Gerando autorização...</>
+                ) : "Gerar autorização"}
               </Button>
             </div>
           </form>
         </Form>
       </main>
+    </div>
+  );
+}
+
+function SuccessScreen({ info }: { info: SuccessInfo }) {
+  return (
+    <div className="min-h-screen bg-muted/30">
+      <header className="border-b bg-background">
+        <div className="mx-auto flex max-w-3xl items-center px-4 py-4"><DaletLogo /></div>
+      </header>
+      <main className="mx-auto max-w-2xl px-4 py-12">
+        <Card>
+          <CardHeader className="text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+              <CheckCircle2 className="h-8 w-8" />
+            </div>
+            <CardTitle className="mt-3 text-2xl">Autorização gerada com sucesso!</CardTitle>
+            <CardDescription>Guarde as informações abaixo para conferência.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-3">
+            <InfoRow label="Protocolo" value={info.protocol} mono />
+            <InfoRow label="Comprador" value={info.buyerName} />
+            <InfoRow label="Pessoa autorizada" value={info.authorizedName} />
+            <InfoRow label="Número do pedido" value={info.orderNumber} />
+            <InfoRow label="Vendedor responsável" value={info.sellerName} />
+            <div className="mt-4 rounded-md border border-amber-300/60 bg-amber-50 p-3 text-sm text-amber-900">
+              A pessoa autorizada deverá apresentar documento oficial com foto no momento da retirada.
+            </div>
+          </CardContent>
+        </Card>
+      </main>
+    </div>
+  );
+}
+
+function InfoRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div className="flex flex-col gap-0.5 border-b py-2 last:border-b-0 sm:flex-row sm:items-center sm:justify-between">
+      <span className="text-xs uppercase tracking-wide text-muted-foreground">{label}</span>
+      <span className={`text-sm font-medium text-foreground ${mono ? "font-mono" : ""}`}>{value}</span>
+    </div>
+  );
+}
+
+function CenteredMessage({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
+      <div className="w-full max-w-md rounded-lg border bg-background p-8 text-center shadow-sm">
+        {children}
+      </div>
     </div>
   );
 }
