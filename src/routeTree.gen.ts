@@ -16,6 +16,7 @@ import { Route as AutorizacaoSlugRouteImport } from './routes/autorizacao.$slug'
 import { Route as AdminAuthRouteImport } from './routes/admin._auth'
 import { Route as AdminAuthVendedoresRouteImport } from './routes/admin._auth.vendedores'
 import { Route as AdminAuthDashboardRouteImport } from './routes/admin._auth.dashboard'
+import { Route as AdminAuthConfiguracoesRouteImport } from './routes/admin._auth.configuracoes'
 import { Route as AdminAuthAutorizacoesRouteImport } from './routes/admin._auth.autorizacoes'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -53,6 +54,11 @@ const AdminAuthDashboardRoute = AdminAuthDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AdminAuthRoute,
 } as any)
+const AdminAuthConfiguracoesRoute = AdminAuthConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => AdminAuthRoute,
+} as any)
 const AdminAuthAutorizacoesRoute = AdminAuthAutorizacoesRouteImport.update({
   id: '/autorizacoes',
   path: '/autorizacoes',
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/autorizacao/$slug': typeof AutorizacaoSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/autorizacoes': typeof AdminAuthAutorizacoesRoute
+  '/admin/configuracoes': typeof AdminAuthConfiguracoesRoute
   '/admin/dashboard': typeof AdminAuthDashboardRoute
   '/admin/vendedores': typeof AdminAuthVendedoresRoute
 }
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/autorizacao/$slug': typeof AutorizacaoSlugRoute
   '/admin/autorizacoes': typeof AdminAuthAutorizacoesRoute
+  '/admin/configuracoes': typeof AdminAuthConfiguracoesRoute
   '/admin/dashboard': typeof AdminAuthDashboardRoute
   '/admin/vendedores': typeof AdminAuthVendedoresRoute
 }
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/autorizacao/$slug': typeof AutorizacaoSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/_auth/autorizacoes': typeof AdminAuthAutorizacoesRoute
+  '/admin/_auth/configuracoes': typeof AdminAuthConfiguracoesRoute
   '/admin/_auth/dashboard': typeof AdminAuthDashboardRoute
   '/admin/_auth/vendedores': typeof AdminAuthVendedoresRoute
 }
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
     | '/autorizacao/$slug'
     | '/admin/'
     | '/admin/autorizacoes'
+    | '/admin/configuracoes'
     | '/admin/dashboard'
     | '/admin/vendedores'
   fileRoutesByTo: FileRoutesByTo
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/autorizacao/$slug'
     | '/admin/autorizacoes'
+    | '/admin/configuracoes'
     | '/admin/dashboard'
     | '/admin/vendedores'
   id:
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/autorizacao/$slug'
     | '/admin/'
     | '/admin/_auth/autorizacoes'
+    | '/admin/_auth/configuracoes'
     | '/admin/_auth/dashboard'
     | '/admin/_auth/vendedores'
   fileRoutesById: FileRoutesById
@@ -180,6 +192,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuthDashboardRouteImport
       parentRoute: typeof AdminAuthRoute
     }
+    '/admin/_auth/configuracoes': {
+      id: '/admin/_auth/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/admin/configuracoes'
+      preLoaderRoute: typeof AdminAuthConfiguracoesRouteImport
+      parentRoute: typeof AdminAuthRoute
+    }
     '/admin/_auth/autorizacoes': {
       id: '/admin/_auth/autorizacoes'
       path: '/autorizacoes'
@@ -192,12 +211,14 @@ declare module '@tanstack/react-router' {
 
 interface AdminAuthRouteChildren {
   AdminAuthAutorizacoesRoute: typeof AdminAuthAutorizacoesRoute
+  AdminAuthConfiguracoesRoute: typeof AdminAuthConfiguracoesRoute
   AdminAuthDashboardRoute: typeof AdminAuthDashboardRoute
   AdminAuthVendedoresRoute: typeof AdminAuthVendedoresRoute
 }
 
 const AdminAuthRouteChildren: AdminAuthRouteChildren = {
   AdminAuthAutorizacoesRoute: AdminAuthAutorizacoesRoute,
+  AdminAuthConfiguracoesRoute: AdminAuthConfiguracoesRoute,
   AdminAuthDashboardRoute: AdminAuthDashboardRoute,
   AdminAuthVendedoresRoute: AdminAuthVendedoresRoute,
 }
