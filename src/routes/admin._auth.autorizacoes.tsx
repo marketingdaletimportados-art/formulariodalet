@@ -190,6 +190,64 @@ function AutorizacoesPage() {
                 <TableHead>Pedido</TableHead>
                 <TableHead>Vendedor</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>PDF</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {query.isLoading && (
+                <TableRow><TableCell colSpan={11} className="py-10 text-center text-muted-foreground">
+                  <Loader2 className="mx-auto h-5 w-5 animate-spin" />
+                </TableCell></TableRow>
+              )}
+              {query.isSuccess && filtered.length === 0 && (
+                <TableRow><TableCell colSpan={11} className="py-10 text-center text-muted-foreground">
+                  Nenhuma autorização encontrada.
+                </TableCell></TableRow>
+              )}
+              {filtered.map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell className="font-mono text-xs">{r.protocol}</TableCell>
+                  <TableCell className="text-xs">{formatDate(r.submitted_at)}</TableCell>
+                  <TableCell>{r.buyer_name}</TableCell>
+                  <TableCell className="font-mono text-xs">{maskCPFDisplay(r.buyer_cpf)}</TableCell>
+                  <TableCell>{r.authorized_person_name}</TableCell>
+                  <TableCell className="font-mono text-xs">{maskCPFDisplay(r.authorized_person_cpf)}</TableCell>
+                  <TableCell>{r.order_number}</TableCell>
+                  <TableCell>{r.sellers?.name ?? "—"}</TableCell>
+                  <TableCell><Badge variant={statusVariant(r.status)}>{STATUS_LABEL[r.status] ?? r.status}</Badge></TableCell>
+                  <TableCell><PdfBadge status={r.pdf_generation_status} /></TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-1">
+                      <Button variant="ghost" size="icon" title="Visualizar" onClick={() => setViewing(r)}>
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      {r.pdf_generation_status === "generated" && (
+                        <Button variant="ghost" size="icon" title="Abrir PDF" onClick={() => openPdf(r.id, "view")}>
+                          <FileText className="h-4 w-4 text-primary" />
+                        </Button>
+                      )}
+                      {r.status === "awaiting_pickup" && (
+                        <>
+                          <Button variant="ghost" size="icon" title="Marcar como retirada"
+                            onClick={() => updateStatus.mutate({ id: r.id, to: "picked_up" })}>
+                            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                          </Button>
+                          <Button variant="ghost" size="icon" title="Cancelar"
+                            onClick={() => updateStatus.mutate({ id: r.id, to: "cancelled" })}>
+                            <XCircle className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                <TableHead>Data</TableHead>
+                <TableHead>Comprador</TableHead>
+                <TableHead>CPF</TableHead>
+                <TableHead>Pessoa autorizada</TableHead>
+                <TableHead>CPF</TableHead>
+                <TableHead>Pedido</TableHead>
+                <TableHead>Vendedor</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
