@@ -87,8 +87,12 @@ function SettingsPage() {
     if (!settings) return;
     setSaving(true);
     const minutes = Math.max(1, Math.min(1440, Number(settings.pdf_signed_url_expiration_minutes) || 15));
-    // deno-lint-ignore no-explicit-any
-    const payload: Record<string, unknown> = {
+    const payload: {
+      webhook_enabled: boolean;
+      webhook_url: string;
+      pdf_signed_url_expiration_minutes: number;
+      webhook_secret?: string;
+    } = {
       webhook_enabled: settings.webhook_enabled,
       webhook_url: settings.webhook_url ?? "",
       pdf_signed_url_expiration_minutes: minutes,
