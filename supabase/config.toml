@@ -1,1 +1,4 @@
 project_id = "rubrpwkudeikhdfprqve"
+
+[functions.create-withdrawal-authorization]
+verify_jwt = false
