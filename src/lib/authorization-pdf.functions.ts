@@ -4,9 +4,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const idSchema = z.object({ authorizationId: z.string().uuid() });
 
-const SIGNED_URL_TTL_SECONDS = 600; // 10 minutes
+const SIGNED_URL_TTL_SECONDS = 900; // 15 minutes
 const BUCKET = "withdrawal-authorizations";
-const ANON_GENERATE_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 
 type AuthRow = {
   id: string;
@@ -111,43 +110,6 @@ async function markFailed(id: string, message: string) {
   }
 }
 
-/**
- * Public generation for the buyer that just submitted the form.
- * Restricted to authorizations submitted within the last 15 minutes and
- * whose PDF is not yet generated — prevents anonymous callers from probing
- * older records by guessing UUIDs.
- */
-export const generateInitialAuthorizationPdf = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => idSchema.parse(data))
-  .handler(async ({ data }) => {
-    const row = await loadAuthorization(data.authorizationId);
-    if (!row) return { ok: false as const, error: "not_found" };
-
-    const submittedAt = new Date(row.submitted_at).getTime();
-    if (Date.now() - submittedAt > ANON_GENERATE_WINDOW_MS) {
-      return { ok: false as const, error: "expired" };
-    }
-    if (row.pdf_generation_status === "generated" && row.pdf_path) {
-      // Already generated during this same short window — allow the buyer to
-      // fetch a fresh signed URL to complete their download.
-      try {
-        const signedUrl = await createSignedUrl(row.pdf_path);
-        return { ok: true as const, signedUrl, filename: row.pdf_filename ?? `${row.protocol}.pdf` };
-      } catch {
-        return { ok: false as const, error: "signed_url_failed" };
-      }
-    }
-
-    try {
-      const result = await buildAndUploadPdf(row);
-      const signedUrl = await createSignedUrl(result.path);
-      return { ok: true as const, signedUrl, filename: result.filename };
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "unknown";
-      await markFailed(row.id, message);
-      return { ok: false as const, error: "generation_failed" };
-    }
-  });
 
 /** Admin-only: fresh signed URL for an existing PDF. */
 export const getAuthorizationPdfSignedUrl = createServerFn({ method: "POST" })

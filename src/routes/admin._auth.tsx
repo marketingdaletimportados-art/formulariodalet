@@ -9,6 +9,12 @@ export const Route = createFileRoute("/admin/_auth")({
     if (!data.session) {
       throw redirect({ to: "/admin" });
     }
+    // Verify admin role server-side (SECURITY DEFINER function).
+    const { data: isAdmin, error } = await supabase.rpc("is_admin");
+    if (error || !isAdmin) {
+      await supabase.auth.signOut();
+      throw redirect({ to: "/admin", search: { unauthorized: "1" } as never });
+    }
     return { user: data.session.user };
   },
   pendingComponent: () => (
