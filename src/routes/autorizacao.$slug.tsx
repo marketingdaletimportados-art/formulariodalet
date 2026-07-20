@@ -111,65 +111,53 @@ function AutorizacaoForm({ seller, slug }: { seller: { id: string; name: string;
   const values = form.watch();
   const termo = useMemo(() => buildTermo(values), [values]);
 
-  const generatePdf = useServerFn(generateInitialAuthorizationPdf);
-  const createAuthorization = useServerFn(createWithdrawalAuthorization);
-
   async function onSubmit(data: FormData) {
     setSubmitError(null);
-    let created: { id: string; protocol: string };
     try {
-      const result = await createAuthorization({
-        data: {
-          seller_slug: slug,
-          buyer_name: data.compradorNome,
-          buyer_cpf: data.compradorCPF,
-          buyer_phone: data.compradorTelefone,
-          order_number: data.pedido,
-          authorized_person_name: data.autorizadoNome,
-          authorized_person_cpf: data.autorizadoCPF,
-          products_description: data.produtos,
-          customer_notes: data.observacoes || null,
-          terms_accepted: true,
+      const { data: result, error } = await supabase.functions.invoke(
+        "create-withdrawal-authorization",
+        {
+          body: {
+            seller_slug: slug,
+            buyer_name: data.compradorNome,
+            buyer_cpf: data.compradorCPF,
+            buyer_phone: data.compradorTelefone,
+            order_number: data.pedido,
+            authorized_person_name: data.autorizadoNome,
+            authorized_person_cpf: data.autorizadoCPF,
+            products_description: data.produtos,
+            customer_notes: data.observacoes || null,
+            terms_accepted: true,
+          },
         },
-      });
-      if (!result.ok) {
-        console.error("Erro ao criar autorização:", result.error);
-        setSubmitError("Não foi possível gerar a autorização. Verifique os dados e tente novamente.");
+      );
+
+      if (error || !result?.success) {
+        console.error("Erro ao criar autorização:", error, result);
+        setSubmitError(
+          (result && typeof result.message === "string" && result.message) ||
+            "Não foi possível gerar a autorização. Verifique os dados e tente novamente.",
+        );
         return;
       }
-      created = { id: result.id, protocol: result.protocol };
-    } catch (error) {
-      console.error("Erro ao criar autorização:", error);
-      setSubmitError("Não foi possível gerar a autorização. Verifique os dados e tente novamente.");
-      return;
-    }
 
-    let pdfSignedUrl: string | null = null;
-    let pdfFilename: string | null = null;
-    let pdfError: string | null = null;
-    try {
-      const result = await generatePdf({ data: { authorizationId: created.id } });
-      if (result.ok) {
-        pdfSignedUrl = result.signedUrl;
-        pdfFilename = result.filename;
-      } else {
-        pdfError = "A autorização foi salva, mas ocorreu um erro ao gerar o PDF. Você pode entrar em contato com seu vendedor para receber o documento.";
-      }
-    } catch {
-      pdfError = "A autorização foi salva, mas ocorreu um erro ao gerar o PDF. Você pode entrar em contato com seu vendedor para receber o documento.";
+      setSuccess({
+        protocol: result.protocol,
+        buyerName: data.compradorNome.trim(),
+        authorizedName: data.autorizadoNome.trim(),
+        orderNumber: data.pedido.trim(),
+        sellerName: seller.name,
+        authorizationId: result.authorization_id,
+        pdfSignedUrl: result.pdf_generated ? (result.pdf_download_url ?? null) : null,
+        pdfFilename: result.pdf_generated ? `${result.protocol}.pdf` : null,
+        pdfError: result.pdf_generated
+          ? null
+          : "A autorização foi salva, mas ocorreu um erro ao gerar o PDF. Entre em contato com seu vendedor para receber o documento.",
+      });
+    } catch (err) {
+      console.error("Erro ao criar autorização:", err);
+      setSubmitError("Não foi possível gerar a autorização. Verifique sua conexão e tente novamente.");
     }
-
-    setSuccess({
-      protocol: created.protocol,
-      buyerName: data.compradorNome.trim(),
-      authorizedName: data.autorizadoNome.trim(),
-      orderNumber: data.pedido.trim(),
-      sellerName: seller.name,
-      authorizationId: created.id,
-      pdfSignedUrl,
-      pdfFilename,
-      pdfError,
-    });
   }
 
   if (success) {
