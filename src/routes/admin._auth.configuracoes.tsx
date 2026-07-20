@@ -160,16 +160,19 @@ function SettingsPage() {
                   </div>
 
                   <div className="grid gap-1.5">
-                    <Label htmlFor="webhook_secret">Segredo do webhook</Label>
+                    <Label htmlFor="webhook_secret">
+                      Segredo do webhook {settings.has_webhook_secret && <span className="text-xs text-emerald-700">(configurado)</span>}
+                    </Label>
                     <Input
                       id="webhook_secret"
                       type="password"
-                      placeholder="••••••••"
-                      value={settings.webhook_secret ?? ""}
-                      onChange={(e) => setSettings({ ...settings, webhook_secret: e.target.value })}
+                      autoComplete="new-password"
+                      placeholder={settings.has_webhook_secret ? "Deixe em branco para manter o atual" : "Defina um segredo"}
+                      value={newSecret}
+                      onChange={(e) => setNewSecret(e.target.value)}
                     />
                     <p className="text-xs text-muted-foreground">
-                      Usado para validar a origem das requisições enviadas ao n8n.
+                      Usado para validar a origem das requisições enviadas ao n8n. O valor atual nunca é exibido novamente.
                     </p>
                   </div>
 
