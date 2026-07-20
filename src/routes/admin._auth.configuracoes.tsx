@@ -20,7 +20,7 @@ type Settings = {
   id: string;
   webhook_enabled: boolean;
   webhook_url: string | null;
-  webhook_secret: string | null;
+  has_webhook_secret: boolean;
   pdf_signed_url_expiration_minutes: number;
 };
 
@@ -29,19 +29,21 @@ function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
+  const [newSecret, setNewSecret] = useState("");
 
   useEffect(() => {
     (async () => {
       setLoading(true);
       setLoadError(null);
+      // Do NOT select webhook_secret — it is never sent to the browser.
       const { data, error } = await supabase
         .from("system_settings")
-        .select("*")
+        .select("id, webhook_enabled, webhook_url, pdf_signed_url_expiration_minutes, webhook_secret")
         .order("created_at", { ascending: true })
         .limit(1)
         .maybeSingle();
       if (error) {
-        setLoadError("Não foi possível carregar as configurações.");
+        setLoadError("Não foi possível carregar as configurações. Verifique se você tem permissão de administrador.");
         setLoading(false);
         return;
       }
@@ -54,15 +56,27 @@ function SettingsPage() {
             webhook_secret: "",
             pdf_signed_url_expiration_minutes: 15,
           })
-          .select("*")
+          .select("id, webhook_enabled, webhook_url, pdf_signed_url_expiration_minutes, webhook_secret")
           .single();
         if (insertError || !created) {
           setLoadError("Não foi possível carregar as configurações.");
         } else {
-          setSettings(created as Settings);
+          setSettings({
+            id: created.id,
+            webhook_enabled: created.webhook_enabled,
+            webhook_url: created.webhook_url,
+            pdf_signed_url_expiration_minutes: created.pdf_signed_url_expiration_minutes,
+            has_webhook_secret: !!created.webhook_secret,
+          });
         }
       } else {
-        setSettings(data as Settings);
+        setSettings({
+          id: data.id,
+          webhook_enabled: data.webhook_enabled,
+          webhook_url: data.webhook_url,
+          pdf_signed_url_expiration_minutes: data.pdf_signed_url_expiration_minutes,
+          has_webhook_secret: !!data.webhook_secret,
+        });
       }
       setLoading(false);
     })();
@@ -73,19 +87,25 @@ function SettingsPage() {
     if (!settings) return;
     setSaving(true);
     const minutes = Math.max(1, Math.min(1440, Number(settings.pdf_signed_url_expiration_minutes) || 15));
+    // deno-lint-ignore no-explicit-any
+    const payload: Record<string, unknown> = {
+      webhook_enabled: settings.webhook_enabled,
+      webhook_url: settings.webhook_url ?? "",
+      pdf_signed_url_expiration_minutes: minutes,
+    };
+    if (newSecret.trim()) payload.webhook_secret = newSecret.trim();
     const { error } = await supabase
       .from("system_settings")
-      .update({
-        webhook_enabled: settings.webhook_enabled,
-        webhook_url: settings.webhook_url ?? "",
-        webhook_secret: settings.webhook_secret ?? "",
-        pdf_signed_url_expiration_minutes: minutes,
-      })
+      .update(payload)
       .eq("id", settings.id);
     setSaving(false);
     if (error) {
       toast.error("Não foi possível salvar as configurações. Tente novamente.");
       return;
+    }
+    if (newSecret.trim()) {
+      setSettings({ ...settings, has_webhook_secret: true });
+      setNewSecret("");
     }
     toast.success("Configurações salvas com sucesso.");
   }
