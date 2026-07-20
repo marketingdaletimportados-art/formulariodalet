@@ -16,9 +16,6 @@ import {
 import { DaletLogo } from "@/components/dalet-logo";
 import { User, UserCheck, PackageSearch, MessageSquare, FileCheck2, CheckCircle2, AlertTriangle, Loader2, Download } from "lucide-react";
 import { maskCPF, maskPhone, isValidCPF } from "@/lib/formatters";
-import { generateInitialAuthorizationPdf } from "@/lib/authorization-pdf.functions";
-import { createWithdrawalAuthorization } from "@/lib/create-authorization.functions";
-import { useServerFn } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/autorizacao/$slug")({
   head: () => ({
