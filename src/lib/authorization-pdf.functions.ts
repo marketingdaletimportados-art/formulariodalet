@@ -4,9 +4,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const idSchema = z.object({ authorizationId: z.string().uuid() });
 
-const SIGNED_URL_TTL_SECONDS = 600; // 10 minutes
+const SIGNED_URL_TTL_SECONDS = 900; // 15 minutes
 const BUCKET = "withdrawal-authorizations";
-const ANON_GENERATE_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 
 type AuthRow = {
   id: string;
