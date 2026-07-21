@@ -426,7 +426,7 @@ Deno.serve(async (req) => {
   // Look up seller
   const { data: seller, error: sellerError } = await admin
     .from("sellers")
-    .select("id, name, department, active")
+    .select("id, name, department, active, phone")
     .eq("slug", input.seller_slug)
     .maybeSingle();
 
