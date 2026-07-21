@@ -15,6 +15,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AutorizacaoSlugRouteImport } from './routes/autorizacao.$slug'
 import { Route as AdminAuthRouteImport } from './routes/admin._auth'
 import { Route as AdminAuthVendedoresRouteImport } from './routes/admin._auth.vendedores'
+import { Route as AdminAuthTesteWhatsappRouteImport } from './routes/admin._auth.teste-whatsapp'
 import { Route as AdminAuthDashboardRouteImport } from './routes/admin._auth.dashboard'
 import { Route as AdminAuthConfiguracoesRouteImport } from './routes/admin._auth.configuracoes'
 import { Route as AdminAuthAutorizacoesRouteImport } from './routes/admin._auth.autorizacoes'
@@ -49,6 +50,11 @@ const AdminAuthVendedoresRoute = AdminAuthVendedoresRouteImport.update({
   path: '/vendedores',
   getParentRoute: () => AdminAuthRoute,
 } as any)
+const AdminAuthTesteWhatsappRoute = AdminAuthTesteWhatsappRouteImport.update({
+  id: '/teste-whatsapp',
+  path: '/teste-whatsapp',
+  getParentRoute: () => AdminAuthRoute,
+} as any)
 const AdminAuthDashboardRoute = AdminAuthDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/admin/autorizacoes': typeof AdminAuthAutorizacoesRoute
   '/admin/configuracoes': typeof AdminAuthConfiguracoesRoute
   '/admin/dashboard': typeof AdminAuthDashboardRoute
+  '/admin/teste-whatsapp': typeof AdminAuthTesteWhatsappRoute
   '/admin/vendedores': typeof AdminAuthVendedoresRoute
 }
 export interface FileRoutesByTo {
@@ -84,6 +91,7 @@ export interface FileRoutesByTo {
   '/admin/autorizacoes': typeof AdminAuthAutorizacoesRoute
   '/admin/configuracoes': typeof AdminAuthConfiguracoesRoute
   '/admin/dashboard': typeof AdminAuthDashboardRoute
+  '/admin/teste-whatsapp': typeof AdminAuthTesteWhatsappRoute
   '/admin/vendedores': typeof AdminAuthVendedoresRoute
 }
 export interface FileRoutesById {
@@ -96,6 +104,7 @@ export interface FileRoutesById {
   '/admin/_auth/autorizacoes': typeof AdminAuthAutorizacoesRoute
   '/admin/_auth/configuracoes': typeof AdminAuthConfiguracoesRoute
   '/admin/_auth/dashboard': typeof AdminAuthDashboardRoute
+  '/admin/_auth/teste-whatsapp': typeof AdminAuthTesteWhatsappRoute
   '/admin/_auth/vendedores': typeof AdminAuthVendedoresRoute
 }
 export interface FileRouteTypes {
@@ -109,6 +118,7 @@ export interface FileRouteTypes {
     | '/admin/autorizacoes'
     | '/admin/configuracoes'
     | '/admin/dashboard'
+    | '/admin/teste-whatsapp'
     | '/admin/vendedores'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/admin/autorizacoes'
     | '/admin/configuracoes'
     | '/admin/dashboard'
+    | '/admin/teste-whatsapp'
     | '/admin/vendedores'
   id:
     | '__root__'
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/admin/_auth/autorizacoes'
     | '/admin/_auth/configuracoes'
     | '/admin/_auth/dashboard'
+    | '/admin/_auth/teste-whatsapp'
     | '/admin/_auth/vendedores'
   fileRoutesById: FileRoutesById
 }
@@ -185,6 +197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuthVendedoresRouteImport
       parentRoute: typeof AdminAuthRoute
     }
+    '/admin/_auth/teste-whatsapp': {
+      id: '/admin/_auth/teste-whatsapp'
+      path: '/teste-whatsapp'
+      fullPath: '/admin/teste-whatsapp'
+      preLoaderRoute: typeof AdminAuthTesteWhatsappRouteImport
+      parentRoute: typeof AdminAuthRoute
+    }
     '/admin/_auth/dashboard': {
       id: '/admin/_auth/dashboard'
       path: '/dashboard'
@@ -213,6 +232,7 @@ interface AdminAuthRouteChildren {
   AdminAuthAutorizacoesRoute: typeof AdminAuthAutorizacoesRoute
   AdminAuthConfiguracoesRoute: typeof AdminAuthConfiguracoesRoute
   AdminAuthDashboardRoute: typeof AdminAuthDashboardRoute
+  AdminAuthTesteWhatsappRoute: typeof AdminAuthTesteWhatsappRoute
   AdminAuthVendedoresRoute: typeof AdminAuthVendedoresRoute
 }
 
@@ -220,6 +240,7 @@ const AdminAuthRouteChildren: AdminAuthRouteChildren = {
   AdminAuthAutorizacoesRoute: AdminAuthAutorizacoesRoute,
   AdminAuthConfiguracoesRoute: AdminAuthConfiguracoesRoute,
   AdminAuthDashboardRoute: AdminAuthDashboardRoute,
+  AdminAuthTesteWhatsappRoute: AdminAuthTesteWhatsappRoute,
   AdminAuthVendedoresRoute: AdminAuthVendedoresRoute,
 }
 
