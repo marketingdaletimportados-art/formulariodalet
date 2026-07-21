@@ -456,9 +456,10 @@ function buildTermo(v: Partial<FormData>) {
   const nomeC = v.compradorNome?.trim() || "[Nome do comprador]";
   const cpfC = v.compradorCPF?.trim() || "[CPF do comprador]";
   const nomeA = v.autorizadoNome?.trim() || "[Nome da pessoa autorizada]";
-  const cpfA = v.autorizadoCPF?.trim() || "[CPF da pessoa autorizada]";
+  const cpfADigits = (v.autorizadoCPF ?? "").replace(/\D/g, "");
+  const cpfA = cpfADigits.length === 11 ? (v.autorizadoCPF as string).trim() : "Não informado";
   const pedido = v.pedido?.trim() || "[Número do pedido]";
-  return `Eu, ${nomeC}, inscrito(a) no CPF ${cpfC}, autorizo ${nomeA}, inscrito(a) no CPF ${cpfA}, a retirar em meu nome os produtos descritos neste formulário, referentes ao pedido nº ${pedido}, adquirido na Dalet Importados.
+  return `Eu, ${nomeC}, inscrito(a) no CPF ${cpfC}, autorizo ${nomeA}, CPF ${cpfA}, a retirar em meu nome os produtos descritos neste formulário, referentes ao pedido nº ${pedido}, adquirido na Dalet Importados.
 
 Declaro que todas as informações prestadas são verdadeiras e assumo total responsabilidade por esta autorização.
 
