@@ -28,16 +28,47 @@ export const Route = createFileRoute("/autorizacao/$slug")({
 });
 
 const schema = z.object({
-  compradorNome: z.string().trim().min(3, "Informe o nome completo").max(120, "Máximo de 120 caracteres"),
-  compradorCPF: z.string().refine(isValidCPF, "CPF inválido"),
-  compradorTelefone: z.string().refine(
-    (v) => { const d = v.replace(/\D/g, ""); return d.length >= 10 && d.length <= 11; },
-    "Telefone inválido",
-  ),
-  pedido: z.string().trim().min(1, "Informe o número do pedido").max(30, "Máximo de 30 caracteres"),
-  autorizadoNome: z.string().trim().min(3, "Informe o nome completo").max(120, "Máximo de 120 caracteres"),
-  autorizadoCPF: z.string().refine(isValidCPF, "CPF inválido"),
-  produtos: z.string().trim().min(3, "Descreva os produtos autorizados").max(1000, "Máximo de 1000 caracteres"),
+  compradorNome: z
+    .string()
+    .trim()
+    .max(120, "Máximo de 120 caracteres")
+    .refine((v) => v.length >= 3, "Informe o nome completo.")
+    .refine((v) => !/\d/.test(v), "O nome não pode conter números.")
+    .refine(isValidPersonName, "Informe um nome válido (apenas letras, espaços, apóstrofo e hífen)."),
+  compradorCPF: z
+    .string()
+    .refine((v) => v.replace(/\D/g, "").length > 0, "Informe o CPF.")
+    .refine(isValidCPF, "Informe um CPF válido."),
+  compradorTelefone: z
+    .string()
+    .refine((v) => v.replace(/\D/g, "").length > 0, "Informe o WhatsApp.")
+    .refine((v) => normalizePhoneE164(v) !== null, "Informe um WhatsApp válido com DDD."),
+  pedido: z
+    .string()
+    .trim()
+    .refine((v) => v.length >= 1, "Informe o número do pedido.")
+    .refine(isValidOrderNumber, "Use apenas letras, números, hífen ou barra (máx. 40)."),
+  autorizadoNome: z
+    .string()
+    .trim()
+    .max(120, "Máximo de 120 caracteres")
+    .refine((v) => v.length >= 3, "Informe o nome completo.")
+    .refine((v) => !/\d/.test(v), "O nome não pode conter números.")
+    .refine(isValidPersonName, "Informe um nome válido (apenas letras, espaços, apóstrofo e hífen)."),
+  autorizadoCPF: z
+    .string()
+    .optional()
+    .refine((v) => {
+      const d = (v ?? "").replace(/\D/g, "");
+      if (d.length === 0) return true;
+      return isValidCPF(d);
+    }, "Informe um CPF válido ou deixe em branco."),
+  produtos: z
+    .string()
+    .trim()
+    .refine((v) => v.length >= 3, "Descreva os produtos que serão retirados.")
+    .refine((v) => /\p{L}/u.test(v), "A descrição deve conter letras, não apenas números.")
+    .refine((v) => v.length <= 1000, "Máximo de 1000 caracteres."),
   observacoes: z.string().trim().max(500, "Máximo de 500 caracteres").optional(),
   termo: z.literal(true, { errorMap: () => ({ message: "É necessário confirmar a autorização" }) }),
 });
