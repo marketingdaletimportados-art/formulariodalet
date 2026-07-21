@@ -13,7 +13,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, Pencil, Power, Copy, Check, Loader2 } from "lucide-react";
+import { Plus, Search, Pencil, Power, Copy, Check, Loader2, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 import { slugify, maskPhone, normalizePhoneE164 } from "@/lib/formatters";
 
@@ -29,6 +29,7 @@ type Seller = {
   phone: string;
   department: string | null;
   active: boolean;
+  registration_source?: string | null;
 };
 
 function VendedoresPage() {
@@ -43,7 +44,7 @@ function VendedoresPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("sellers")
-        .select("id, name, slug, phone, department, active")
+        .select("id, name, slug, phone, department, active, registration_source")
         .order("name");
       if (error) throw error;
       return data as Seller[];
@@ -91,6 +92,13 @@ function VendedoresPage() {
     });
   }
 
+  function copyRegistrationLink() {
+    const url = `${window.location.origin}/cadastro`;
+    navigator.clipboard.writeText(url).then(() => {
+      toast.success("Link de cadastro copiado.");
+    });
+  }
+
   return (
     <AdminLayout title="Vendedores">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -99,9 +107,14 @@ function VendedoresPage() {
           <Input placeholder="Pesquisar vendedor..." className="pl-9"
             value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
-        <Button size="lg" className="h-12" onClick={() => setCreating(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Novo vendedor
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button size="lg" variant="outline" className="h-12" onClick={copyRegistrationLink}>
+            <LinkIcon className="mr-2 h-4 w-4" /> Copiar link de cadastro
+          </Button>
+          <Button size="lg" className="h-12" onClick={() => setCreating(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Novo vendedor
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -131,7 +144,14 @@ function VendedoresPage() {
               )}
               {filtered.map((v) => (
                 <TableRow key={v.id}>
-                  <TableCell className="font-medium">{v.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex flex-col gap-1">
+                      <span>{v.name}</span>
+                      {v.registration_source === "public_registration" && (
+                        <Badge variant="outline" className="w-fit text-[10px] font-normal">Cadastro público</Badge>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>{v.department ?? "—"}</TableCell>
                   <TableCell>{v.phone}</TableCell>
                   <TableCell className="font-mono text-xs">/autorizacao/{v.slug}</TableCell>

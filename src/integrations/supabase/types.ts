@@ -29,6 +29,30 @@ export type Database = {
         }
         Relationships: []
       }
+      sectors: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sellers: {
         Row: {
           active: boolean
@@ -37,6 +61,8 @@ export type Database = {
           id: string
           name: string
           phone: string
+          registration_source: string
+          sector_id: string | null
           slug: string
           updated_at: string
         }
@@ -47,6 +73,8 @@ export type Database = {
           id?: string
           name: string
           phone: string
+          registration_source?: string
+          sector_id?: string | null
           slug: string
           updated_at?: string
         }
@@ -57,10 +85,20 @@ export type Database = {
           id?: string
           name?: string
           phone?: string
+          registration_source?: string
+          sector_id?: string | null
           slug?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "sellers_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       system_settings: {
         Row: {

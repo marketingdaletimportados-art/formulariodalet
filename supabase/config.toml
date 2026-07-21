@@ -2,3 +2,6 @@ project_id = "rubrpwkudeikhdfprqve"
 
 [functions.create-withdrawal-authorization]
 verify_jwt = false
+
+[functions.register-seller]
+verify_jwt = false
