@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/form";
 import { DaletLogo } from "@/components/dalet-logo";
 import { User, UserCheck, PackageSearch, MessageSquare, FileCheck2, CheckCircle2, AlertTriangle, Loader2, Download } from "lucide-react";
-import { maskCPF, maskPhone, isValidCPF } from "@/lib/formatters";
+import { maskCPF, maskPhone, isValidCPF, isValidPersonName, isValidOrderNumber, normalizePhoneE164 } from "@/lib/formatters";
 
 export const Route = createFileRoute("/autorizacao/$slug")({
   head: () => ({
