@@ -390,3 +390,9 @@ function PdfBadge({ status }: { status: string }) {
   if (status === "failed") return <Badge variant="destructive">Erro ao gerar</Badge>;
   return <Badge variant="secondary">Pendente</Badge>;
 }
+
+function WebhookBadge({ status }: { status: string }) {
+  if (status === "sent") return <Badge variant="default">Enviado</Badge>;
+  if (status === "failed") return <Badge variant="destructive">Falhou</Badge>;
+  return <Badge variant="secondary">Pendente</Badge>;
+}
