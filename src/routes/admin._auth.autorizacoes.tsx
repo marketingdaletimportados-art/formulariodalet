@@ -13,11 +13,12 @@ import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Eye, CheckCircle2, XCircle, Loader2, FileText, RefreshCw, Download, AlertCircle } from "lucide-react";
+import { Eye, CheckCircle2, XCircle, Loader2, FileText, RefreshCw, Download, AlertCircle, Send } from "lucide-react";
 import { toast } from "sonner";
 import { maskCPFDisplay } from "@/lib/formatters";
 import { useServerFn } from "@tanstack/react-start";
 import { getAuthorizationPdfSignedUrl, regenerateAuthorizationPdf } from "@/lib/authorization-pdf.functions";
+import { resendAuthorizationWebhook } from "@/lib/authorization-webhook.functions";
 
 export const Route = createFileRoute("/admin/_auth/autorizacoes")({
   head: () => ({ meta: [{ title: "Autorizações — Dalet Importados" }] }),
