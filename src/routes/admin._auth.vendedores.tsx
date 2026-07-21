@@ -13,7 +13,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, Pencil, Power, Copy, Check, Loader2, Link as LinkIcon } from "lucide-react";
+import { Plus, Search, Pencil, Power, Copy, Check, Loader2, Link as LinkIcon, ExternalLink, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { slugify, maskPhone, normalizePhoneE164 } from "@/lib/formatters";
 
@@ -83,21 +83,31 @@ function VendedoresPage() {
     );
   }, [sellersQuery.data, search]);
 
+  const PUBLIC_DOMAIN = "https://formulariodalet.vercel.app";
+  const buildAuthUrl = (slug: string) => `${PUBLIC_DOMAIN}/autorizacao/${slug}`;
+
   function copyLink(slug: string) {
-    const url = `${window.location.origin}/autorizacao/${slug}`;
-    navigator.clipboard.writeText(url).then(() => {
+    navigator.clipboard.writeText(buildAuthUrl(slug)).then(() => {
       setCopiedSlug(slug);
-      toast.success("Link copiado!");
+      toast.success("Link copiado com sucesso.");
       setTimeout(() => setCopiedSlug((c) => (c === slug ? null : c)), 1500);
     });
   }
 
   function copyRegistrationLink() {
-    const url = `${window.location.origin}/cadastro`;
+    const url = `${PUBLIC_DOMAIN}/cadastro`;
     navigator.clipboard.writeText(url).then(() => {
       toast.success("Link de cadastro copiado.");
     });
   }
+
+  function shareOnWhatsApp(v: Seller) {
+    const message = `Olá, ${v.name}! Este é o seu link exclusivo para autorizações de retirada:\n\n${buildAuthUrl(v.slug)}\n\nGuarde este link e envie aos clientes sempre que precisarem autorizar outra pessoa a retirar uma mercadoria.`;
+    const phoneDigits = v.phone.replace(/\D/g, "");
+    const url = `https://wa.me/${phoneDigits}?text=${encodeURIComponent(message)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
 
   return (
     <AdminLayout title="Vendedores">
@@ -125,7 +135,7 @@ function VendedoresPage() {
                 <TableHead>Nome</TableHead>
                 <TableHead>Setor</TableHead>
                 <TableHead>WhatsApp</TableHead>
-                <TableHead>Link exclusivo</TableHead>
+                <TableHead>Link de autorização</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Autorizações</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
@@ -165,6 +175,15 @@ function VendedoresPage() {
                     <div className="flex justify-end gap-1">
                       <Button variant="ghost" size="icon" title="Copiar link" onClick={() => copyLink(v.slug)}>
                         {copiedSlug === v.slug ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                      <Button variant="ghost" size="icon" title="Abrir formulário" asChild>
+                        <a href={buildAuthUrl(v.slug)} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      </Button>
+                      <Button variant="ghost" size="icon" title="Compartilhar pelo WhatsApp"
+                        onClick={() => shareOnWhatsApp(v)}>
+                        <MessageCircle className="h-4 w-4 text-emerald-600" />
                       </Button>
                       <Button variant="ghost" size="icon" title="Editar" onClick={() => setEditing(v)}>
                         <Pencil className="h-4 w-4" />
