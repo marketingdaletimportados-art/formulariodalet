@@ -237,6 +237,7 @@ function AutorizacoesPage() {
                   <TableCell>{r.sellers?.name ?? "—"}</TableCell>
                   <TableCell><Badge variant={statusVariant(r.status)}>{STATUS_LABEL[r.status] ?? r.status}</Badge></TableCell>
                   <TableCell><PdfBadge status={r.pdf_generation_status} /></TableCell>
+                  <TableCell><WebhookBadge status={r.webhook_status} /></TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       <Button variant="ghost" size="icon" title="Visualizar" onClick={() => setViewing(r)}>
@@ -245,6 +246,13 @@ function AutorizacoesPage() {
                       {r.pdf_generation_status === "generated" && (
                         <Button variant="ghost" size="icon" title="Abrir PDF" onClick={() => openPdf(r.id, "view")}>
                           <FileText className="h-4 w-4 text-primary" />
+                        </Button>
+                      )}
+                      {r.pdf_generation_status === "generated" && r.webhook_status !== "sent" && (
+                        <Button variant="ghost" size="icon" title="Reenviar para WhatsApp do vendedor"
+                          disabled={resending.isPending}
+                          onClick={() => resending.mutate(r.id)}>
+                          <Send className="h-4 w-4 text-primary" />
                         </Button>
                       )}
                       {r.status === "awaiting_pickup" && (
