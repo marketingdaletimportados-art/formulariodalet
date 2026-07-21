@@ -335,6 +335,24 @@ function AutorizacoesPage() {
                     : <RefreshCw className="mr-2 h-4 w-4" />}
                   Gerar PDF novamente
                 </Button>
+                {viewing.pdf_generation_status === "generated" && (
+                  <Button variant="secondary" size="sm"
+                    onClick={() => resending.mutate(viewing.id)}
+                    disabled={resending.isPending}>
+                    {resending.isPending
+                      ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      : <Send className="mr-2 h-4 w-4" />}
+                    Reenviar ao WhatsApp
+                  </Button>
+                )}
+              </div>
+              <div className="mt-3 text-xs text-muted-foreground">
+                Envio ao WhatsApp: <WebhookBadge status={viewing.webhook_status} />
+                {viewing.webhook_sent_at && <> · último envio {formatDate(viewing.webhook_sent_at)}</>}
+                {viewing.webhook_attempts > 0 && <> · tentativas: {viewing.webhook_attempts}</>}
+                {viewing.webhook_error && (
+                  <div className="mt-1 text-destructive">Erro: {viewing.webhook_error}</div>
+                )}
               </div>
               {viewing.status === "awaiting_pickup" && (
                 <DialogFooter className="gap-2">
