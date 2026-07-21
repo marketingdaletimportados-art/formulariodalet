@@ -345,9 +345,11 @@ async function renderPdf(data: PdfData): Promise<Uint8Array> {
   ]);
 
   heading("PESSOA AUTORIZADA PARA RETIRADA");
+  const authCpfDigits = data.authorized.cpf ? digits(data.authorized.cpf) : "";
+  const authCpfDisplay = authCpfDigits.length === 11 ? maskCpfDoc(authCpfDigits) : "Não informado";
   kvGrid([
     ["Nome completo", data.authorized.name],
-    ["CPF", maskCpfDoc(data.authorized.cpf)],
+    ["CPF", authCpfDisplay],
   ]);
 
   heading("PRODUTOS AUTORIZADOS PARA RETIRADA");
@@ -359,7 +361,7 @@ async function renderPdf(data: PdfData): Promise<Uint8Array> {
   }
 
   heading("TERMO DE AUTORIZACAO");
-  const termo = `Eu, ${data.buyer.name}, inscrito(a) no CPF nº ${maskCpfDoc(data.buyer.cpf)}, autorizo ${data.authorized.name}, inscrito(a) no CPF nº ${maskCpfDoc(data.authorized.cpf)}, a retirar em meu nome os produtos descritos neste documento, referentes ao pedido nº ${data.buyer.orderNumber}, adquirido na Dalet Importados.
+  const termo = `Eu, ${data.buyer.name}, inscrito(a) no CPF nº ${maskCpfDoc(data.buyer.cpf)}, autorizo ${data.authorized.name}, CPF ${authCpfDisplay}, a retirar em meu nome os produtos descritos neste documento, referentes ao pedido nº ${data.buyer.orderNumber}, adquirido na Dalet Importados.
 
 Declaro que todas as informações prestadas são verdadeiras e assumo total responsabilidade por esta autorização.
 
