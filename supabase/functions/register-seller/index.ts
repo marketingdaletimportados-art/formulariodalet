@@ -145,21 +145,26 @@ Deno.serve(async (req) => {
     return jsonResponse({ success: false, error: "Selecione um setor válido." }, 400);
   }
 
-  // Duplicate phone check
+  const PUBLIC_DOMAIN = "https://formulariodalet.vercel.app";
+  const buildUrl = (slug: string) => `${PUBLIC_DOMAIN}/autorizacao/${slug}`;
+
+  // Duplicate phone check — return existing seller so they don't lose access to their link
   const { data: existingPhone } = await admin
     .from("sellers")
-    .select("id")
+    .select("name, slug")
     .eq("phone", phone)
     .maybeSingle();
   if (existingPhone) {
-    return jsonResponse(
-      {
-        success: false,
-        error:
-          "Este número de WhatsApp já está cadastrado. Entre em contato com o administrador caso precise atualizar seus dados.",
+    return jsonResponse({
+      success: true,
+      already_registered: true,
+      seller: {
+        name: existingPhone.name,
+        slug: existingPhone.slug,
+        authorization_url: buildUrl(existingPhone.slug),
       },
-      409,
-    );
+      message: "Este WhatsApp já está cadastrado. Abaixo está seu link de autorização.",
+    });
   }
 
   const cleanName = normalizeNameDisplay(nameRaw);
@@ -189,8 +194,25 @@ Deno.serve(async (req) => {
 
   const { error: insertErr } = await admin.from("sellers").insert(insertPayload);
   if (insertErr) {
-    // Unique constraint fallback (race)
     if (insertErr.code === "23505") {
+      // Race on phone uniqueness — fetch and return the winning row
+      const { data: raced } = await admin
+        .from("sellers")
+        .select("name, slug")
+        .eq("phone", phone)
+        .maybeSingle();
+      if (raced) {
+        return jsonResponse({
+          success: true,
+          already_registered: true,
+          seller: {
+            name: raced.name,
+            slug: raced.slug,
+            authorization_url: buildUrl(raced.slug),
+          },
+          message: "Este WhatsApp já está cadastrado. Abaixo está seu link de autorização.",
+        });
+      }
       return jsonResponse(
         { success: false, error: "Este número de WhatsApp já está cadastrado." },
         409,
@@ -200,5 +222,14 @@ Deno.serve(async (req) => {
     return jsonResponse({ success: false, error: "Não foi possível concluir o cadastro." }, 500);
   }
 
-  return jsonResponse({ success: true, message: "Cadastro realizado com sucesso." });
+  return jsonResponse({
+    success: true,
+    seller: {
+      name: cleanName,
+      slug,
+      authorization_url: buildUrl(slug),
+    },
+    message: "Cadastro realizado com sucesso.",
+  });
 });
+
