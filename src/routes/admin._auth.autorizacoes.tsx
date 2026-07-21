@@ -46,6 +46,10 @@ type AuthRow = {
   pdf_generation_status: string;
   pdf_filename: string | null;
   pdf_generated_at: string | null;
+  webhook_status: string;
+  webhook_sent_at: string | null;
+  webhook_error: string | null;
+  webhook_attempts: number;
   sellers: { name: string } | null;
 };
 
