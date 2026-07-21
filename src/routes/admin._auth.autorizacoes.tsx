@@ -13,11 +13,12 @@ import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Eye, CheckCircle2, XCircle, Loader2, FileText, RefreshCw, Download, AlertCircle } from "lucide-react";
+import { Eye, CheckCircle2, XCircle, Loader2, FileText, RefreshCw, Download, AlertCircle, Send } from "lucide-react";
 import { toast } from "sonner";
 import { maskCPFDisplay } from "@/lib/formatters";
 import { useServerFn } from "@tanstack/react-start";
 import { getAuthorizationPdfSignedUrl, regenerateAuthorizationPdf } from "@/lib/authorization-pdf.functions";
+import { resendAuthorizationWebhook } from "@/lib/authorization-webhook.functions";
 
 export const Route = createFileRoute("/admin/_auth/autorizacoes")({
   head: () => ({ meta: [{ title: "Autorizações — Dalet Importados" }] }),
@@ -45,6 +46,10 @@ type AuthRow = {
   pdf_generation_status: string;
   pdf_filename: string | null;
   pdf_generated_at: string | null;
+  webhook_status: string;
+  webhook_sent_at: string | null;
+  webhook_error: string | null;
+  webhook_attempts: number;
   sellers: { name: string } | null;
 };
 
@@ -71,7 +76,7 @@ function AutorizacoesPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("withdrawal_authorizations")
-        .select("id, protocol, submitted_at, buyer_name, buyer_cpf, buyer_phone, order_number, authorized_person_name, authorized_person_cpf, products_description, customer_notes, status, picked_up_at, cancelled_at, seller_id, pdf_generation_status, pdf_filename, pdf_generated_at, sellers(name)")
+        .select("id, protocol, submitted_at, buyer_name, buyer_cpf, buyer_phone, order_number, authorized_person_name, authorized_person_cpf, products_description, customer_notes, status, picked_up_at, cancelled_at, seller_id, pdf_generation_status, pdf_filename, pdf_generated_at, webhook_status, webhook_sent_at, webhook_error, webhook_attempts, sellers(name)")
         .order("submitted_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as unknown as AuthRow[];
@@ -152,6 +157,20 @@ function AutorizacoesPage() {
     onError: () => toast.error("Não foi possível gerar o documento."),
   });
 
+  const resend = useServerFn(resendAuthorizationWebhook);
+  const resending = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await resend({ data: { authorizationId: id } });
+      if (!res.ok) throw new Error(res.error);
+      return res;
+    },
+    onSuccess: () => {
+      toast.success("PDF reenviado ao WhatsApp do vendedor.");
+      qc.invalidateQueries({ queryKey: ["admin-authorizations"] });
+    },
+    onError: () => toast.error("Não foi possível reenviar. Tente novamente em instantes."),
+  });
+
   return (
     <AdminLayout title="Autorizações">
       <Card className="mb-4">
@@ -191,17 +210,18 @@ function AutorizacoesPage() {
                 <TableHead>Vendedor</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>PDF</TableHead>
+                <TableHead>WhatsApp</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {query.isLoading && (
-                <TableRow><TableCell colSpan={11} className="py-10 text-center text-muted-foreground">
+                <TableRow><TableCell colSpan={12} className="py-10 text-center text-muted-foreground">
                   <Loader2 className="mx-auto h-5 w-5 animate-spin" />
                 </TableCell></TableRow>
               )}
               {query.isSuccess && filtered.length === 0 && (
-                <TableRow><TableCell colSpan={11} className="py-10 text-center text-muted-foreground">
+                <TableRow><TableCell colSpan={12} className="py-10 text-center text-muted-foreground">
                   Nenhuma autorização encontrada.
                 </TableCell></TableRow>
               )}
@@ -217,6 +237,7 @@ function AutorizacoesPage() {
                   <TableCell>{r.sellers?.name ?? "—"}</TableCell>
                   <TableCell><Badge variant={statusVariant(r.status)}>{STATUS_LABEL[r.status] ?? r.status}</Badge></TableCell>
                   <TableCell><PdfBadge status={r.pdf_generation_status} /></TableCell>
+                  <TableCell><WebhookBadge status={r.webhook_status} /></TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       <Button variant="ghost" size="icon" title="Visualizar" onClick={() => setViewing(r)}>
@@ -225,6 +246,13 @@ function AutorizacoesPage() {
                       {r.pdf_generation_status === "generated" && (
                         <Button variant="ghost" size="icon" title="Abrir PDF" onClick={() => openPdf(r.id, "view")}>
                           <FileText className="h-4 w-4 text-primary" />
+                        </Button>
+                      )}
+                      {r.pdf_generation_status === "generated" && r.webhook_status !== "sent" && (
+                        <Button variant="ghost" size="icon" title="Reenviar para WhatsApp do vendedor"
+                          disabled={resending.isPending}
+                          onClick={() => resending.mutate(r.id)}>
+                          <Send className="h-4 w-4 text-primary" />
                         </Button>
                       )}
                       {r.status === "awaiting_pickup" && (
@@ -307,6 +335,24 @@ function AutorizacoesPage() {
                     : <RefreshCw className="mr-2 h-4 w-4" />}
                   Gerar PDF novamente
                 </Button>
+                {viewing.pdf_generation_status === "generated" && (
+                  <Button variant="secondary" size="sm"
+                    onClick={() => resending.mutate(viewing.id)}
+                    disabled={resending.isPending}>
+                    {resending.isPending
+                      ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      : <Send className="mr-2 h-4 w-4" />}
+                    Reenviar ao WhatsApp
+                  </Button>
+                )}
+              </div>
+              <div className="mt-3 text-xs text-muted-foreground">
+                Envio ao WhatsApp: <WebhookBadge status={viewing.webhook_status} />
+                {viewing.webhook_sent_at && <> · último envio {formatDate(viewing.webhook_sent_at)}</>}
+                {viewing.webhook_attempts > 0 && <> · tentativas: {viewing.webhook_attempts}</>}
+                {viewing.webhook_error && (
+                  <div className="mt-1 text-destructive">Erro: {viewing.webhook_error}</div>
+                )}
               </div>
               {viewing.status === "awaiting_pickup" && (
                 <DialogFooter className="gap-2">
@@ -342,5 +388,11 @@ function formatDate(iso: string) {
 function PdfBadge({ status }: { status: string }) {
   if (status === "generated") return <Badge variant="default">PDF gerado</Badge>;
   if (status === "failed") return <Badge variant="destructive">Erro ao gerar</Badge>;
+  return <Badge variant="secondary">Pendente</Badge>;
+}
+
+function WebhookBadge({ status }: { status: string }) {
+  if (status === "sent") return <Badge variant="default">Enviado</Badge>;
+  if (status === "failed") return <Badge variant="destructive">Falhou</Badge>;
   return <Badge variant="secondary">Pendente</Badge>;
 }
