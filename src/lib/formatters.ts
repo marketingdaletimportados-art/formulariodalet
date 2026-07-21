@@ -45,3 +45,19 @@ export function slugify(v: string) {
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-");
 }
+
+/**
+ * Normaliza telefone para formato internacional E.164 (apenas dígitos), assumindo
+ * Brasil quando o número tem 10 ou 11 dígitos e não começa com 55.
+ * Retorna null se o resultado não estiver entre 12 e 15 dígitos.
+ */
+export function normalizePhoneE164(v: string): string | null {
+  const d = v.replace(/\D/g, "");
+  if (!d) return null;
+  let out = d;
+  if ((d.length === 10 || d.length === 11) && !d.startsWith("55")) {
+    out = "55" + d;
+  }
+  if (out.length < 12 || out.length > 15) return null;
+  return out;
+}
