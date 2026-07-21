@@ -180,7 +180,7 @@ type PdfData = {
   termsAcceptedAt: string;
   seller: { name: string; department: string | null };
   buyer: { name: string; cpf: string; phone: string; orderNumber: string };
-  authorized: { name: string; cpf: string };
+  authorized: { name: string; cpf: string | null };
   products: string;
   notes: string | null;
 };
