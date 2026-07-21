@@ -15,7 +15,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Search, Pencil, Power, Copy, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { slugify, maskPhone } from "@/lib/formatters";
+import { slugify, maskPhone, normalizePhoneE164 } from "@/lib/formatters";
 
 export const Route = createFileRoute("/admin/_auth/vendedores")({
   head: () => ({ meta: [{ title: "Vendedores — Dalet Importados" }] }),
