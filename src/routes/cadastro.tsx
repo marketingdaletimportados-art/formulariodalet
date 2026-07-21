@@ -13,7 +13,8 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2, Copy, ExternalLink, Info } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/cadastro")({
   head: () => ({
