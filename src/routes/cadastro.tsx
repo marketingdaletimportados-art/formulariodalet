@@ -113,11 +113,23 @@ function CadastroPage() {
       setServerError(msg);
       return;
     }
-    if (!res?.success) {
+    if (!res?.success || !res?.seller) {
       setServerError(res?.error ?? "Não foi possível concluir o cadastro.");
       return;
     }
-    setSuccess(true);
+    setResult({
+      name: res.seller.name,
+      slug: res.seller.slug,
+      authorization_url: res.seller.authorization_url,
+      already_registered: !!res.already_registered,
+    });
+  }
+
+  function copyLink() {
+    if (!result) return;
+    navigator.clipboard.writeText(result.authorization_url).then(() => {
+      toast.success("Link copiado com sucesso.");
+    });
   }
 
   return (
@@ -129,19 +141,51 @@ function CadastroPage() {
       </header>
 
       <main className="mx-auto flex max-w-lg flex-col items-center px-4 py-10 sm:py-16">
-        {success ? (
+        {result ? (
           <Card className="w-full">
-            <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
+            <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
                 <CheckCircle2 className="h-8 w-8" />
               </div>
-              <h1 className="text-xl font-semibold">Cadastro concluído!</h1>
+              <h1 className="text-xl font-semibold">
+                {result.already_registered ? "WhatsApp já cadastrado" : "Cadastro concluído!"}
+              </h1>
               <p className="max-w-sm text-sm text-muted-foreground">
-                Seus dados foram registrados corretamente. Você já poderá receber as autorizações de retirada pelo WhatsApp.
+                {result.already_registered
+                  ? "Este WhatsApp já está cadastrado. Abaixo está seu link de autorização."
+                  : "Seus dados foram registrados corretamente."}
+              </p>
+
+              <div className="mt-2 w-full text-left">
+                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Seu link de autorização
+                </p>
+                <div className="flex items-center gap-2 rounded-md border bg-muted/40 p-3">
+                  <code className="flex-1 truncate text-xs sm:text-sm">
+                    {result.authorization_url}
+                  </code>
+                </div>
+              </div>
+
+              <div className="mt-2 grid w-full grid-cols-1 gap-2 sm:grid-cols-2">
+                <Button size="lg" variant="outline" className="h-12" onClick={copyLink}>
+                  <Copy className="mr-2 h-4 w-4" /> Copiar link
+                </Button>
+                <Button asChild size="lg" className="h-12">
+                  <a href={result.authorization_url} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="mr-2 h-4 w-4" /> Abrir meu formulário
+                  </a>
+                </Button>
+              </div>
+
+              <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Info className="h-3.5 w-3.5" />
+                Guarde este link — envie aos clientes para autorizarem retiradas.
               </p>
             </CardContent>
           </Card>
         ) : (
+          <>
           <>
             <div className="mb-6 text-center">
               <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
