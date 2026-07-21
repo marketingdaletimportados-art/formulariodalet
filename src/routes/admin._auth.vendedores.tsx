@@ -176,6 +176,15 @@ function VendedoresPage() {
                       <Button variant="ghost" size="icon" title="Copiar link" onClick={() => copyLink(v.slug)}>
                         {copiedSlug === v.slug ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
                       </Button>
+                      <Button variant="ghost" size="icon" title="Abrir formulário" asChild>
+                        <a href={buildAuthUrl(v.slug)} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      </Button>
+                      <Button variant="ghost" size="icon" title="Compartilhar pelo WhatsApp"
+                        onClick={() => shareOnWhatsApp(v)}>
+                        <MessageCircle className="h-4 w-4 text-emerald-600" />
+                      </Button>
                       <Button variant="ghost" size="icon" title="Editar" onClick={() => setEditing(v)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
