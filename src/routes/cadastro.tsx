@@ -61,7 +61,10 @@ function maskParaguayPhone(v: string): string {
 }
 
 function CadastroPage() {
-  const [success, setSuccess] = useState(false);
+  const [result, setResult] = useState<
+    | { name: string; slug: string; authorization_url: string; already_registered: boolean }
+    | null
+  >(null);
   const [serverError, setServerError] = useState<string | null>(null);
 
   const sectorsQuery = useQuery({
