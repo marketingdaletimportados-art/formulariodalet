@@ -526,7 +526,7 @@ Deno.serve(async (req) => {
       },
       authorized: {
         name: input.authorized_person_name,
-        cpf: input.authorized_person_cpf,
+        cpf: input.authorized_person_cpf.length === 11 ? input.authorized_person_cpf : null,
       },
       products: input.products_description,
       notes: input.customer_notes,
