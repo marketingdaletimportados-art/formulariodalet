@@ -273,9 +273,10 @@ function AutorizacaoForm({ seller, slug }: { seller: { id: string; name: string;
               )} />
               <FormField control={form.control} name="autorizadoCPF" render={({ field }) => (
                 <FormItem className="sm:col-span-2">
-                  <FormLabel>CPF <Req /></FormLabel>
+                  <FormLabel>CPF <span className="text-xs font-normal text-muted-foreground">(opcional)</span></FormLabel>
                   <FormControl>
                     <Input inputMode="numeric" placeholder="000.000.000-00" {...field}
+                      value={field.value ?? ""}
                       onChange={(e) => field.onChange(maskCPF(e.target.value))} />
                   </FormControl>
                   <FormMessage />
