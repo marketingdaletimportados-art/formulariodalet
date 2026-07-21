@@ -191,7 +191,12 @@ function SellerFormDialog({ open, seller, onClose }: {
       setName(seller?.name ?? "");
       setSlug(seller?.slug ?? "");
       setSlugTouched(!!seller);
-      setPhone(seller?.phone ?? "");
+      const rawPhone = seller?.phone ?? "";
+      const digits = rawPhone.replace(/\D/g, "");
+      const local = digits.startsWith("55") && (digits.length === 12 || digits.length === 13)
+        ? digits.slice(2)
+        : digits;
+      setPhone(local ? maskPhone(local) : "");
       setDepartment(seller?.department ?? "");
       setActive(seller?.active ?? true);
       setError(null);
