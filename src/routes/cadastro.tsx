@@ -186,7 +186,6 @@ function CadastroPage() {
           </Card>
         ) : (
           <>
-          <>
             <div className="mb-6 text-center">
               <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
                 Cadastro de vendedor
