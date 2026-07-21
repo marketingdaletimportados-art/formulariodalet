@@ -487,7 +487,7 @@ Deno.serve(async (req) => {
       buyer_phone: input.buyer_phone,
       order_number: input.order_number,
       authorized_person_name: input.authorized_person_name,
-      authorized_person_cpf: input.authorized_person_cpf,
+      authorized_person_cpf: input.authorized_person_cpf.length === 11 ? input.authorized_person_cpf : null,
       products_description: input.products_description,
       customer_notes: input.customer_notes,
       terms_accepted: true,
