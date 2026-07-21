@@ -135,7 +135,7 @@ function VendedoresPage() {
                 <TableHead>Nome</TableHead>
                 <TableHead>Setor</TableHead>
                 <TableHead>WhatsApp</TableHead>
-                <TableHead>Link exclusivo</TableHead>
+                <TableHead>Link de autorização</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Autorizações</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
