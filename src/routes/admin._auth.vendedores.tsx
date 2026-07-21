@@ -13,7 +13,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, Pencil, Power, Copy, Check, Loader2 } from "lucide-react";
+import { Plus, Search, Pencil, Power, Copy, Check, Loader2, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 import { slugify, maskPhone, normalizePhoneE164 } from "@/lib/formatters";
 
