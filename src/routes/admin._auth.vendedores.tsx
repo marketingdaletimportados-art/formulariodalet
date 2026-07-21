@@ -44,7 +44,7 @@ function VendedoresPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("sellers")
-        .select("id, name, slug, phone, department, active")
+        .select("id, name, slug, phone, department, active, registration_source")
         .order("name");
       if (error) throw error;
       return data as Seller[];
