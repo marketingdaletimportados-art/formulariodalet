@@ -216,12 +216,12 @@ function AutorizacoesPage() {
             </TableHeader>
             <TableBody>
               {query.isLoading && (
-                <TableRow><TableCell colSpan={11} className="py-10 text-center text-muted-foreground">
+                <TableRow><TableCell colSpan={12} className="py-10 text-center text-muted-foreground">
                   <Loader2 className="mx-auto h-5 w-5 animate-spin" />
                 </TableCell></TableRow>
               )}
               {query.isSuccess && filtered.length === 0 && (
-                <TableRow><TableCell colSpan={11} className="py-10 text-center text-muted-foreground">
+                <TableRow><TableCell colSpan={12} className="py-10 text-center text-muted-foreground">
                   Nenhuma autorização encontrada.
                 </TableCell></TableRow>
               )}
