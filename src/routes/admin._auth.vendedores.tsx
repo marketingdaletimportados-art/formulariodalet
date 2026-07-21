@@ -207,12 +207,14 @@ function SellerFormDialog({ open, seller, onClose }: {
     setError(null);
     const cleanName = name.trim();
     const cleanSlug = slugify(slug);
-    const cleanPhone = phone.trim();
+    const normalizedPhone = normalizePhoneE164(phone);
     if (cleanName.length < 3) return setError("Informe o nome completo do vendedor.");
     if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(cleanSlug)) {
       return setError("Slug inválido. Use apenas letras minúsculas, números e hífens.");
     }
-    if (cleanPhone.replace(/\D/g, "").length < 10) return setError("Informe um WhatsApp válido.");
+    if (!normalizedPhone) {
+      return setError("Informe um WhatsApp válido (com DDD). Ex: (67) 99955-0851.");
+    }
 
     setSaving(true);
     // check slug uniqueness
@@ -227,7 +229,7 @@ function SellerFormDialog({ open, seller, onClose }: {
     const payload = {
       name: cleanName,
       slug: cleanSlug,
-      phone: cleanPhone,
+      phone: normalizedPhone,
       department: department.trim() || null,
       active,
     };
