@@ -157,6 +157,20 @@ function AutorizacoesPage() {
     onError: () => toast.error("Não foi possível gerar o documento."),
   });
 
+  const resend = useServerFn(resendAuthorizationWebhook);
+  const resending = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await resend({ data: { authorizationId: id } });
+      if (!res.ok) throw new Error(res.error);
+      return res;
+    },
+    onSuccess: () => {
+      toast.success("PDF reenviado ao WhatsApp do vendedor.");
+      qc.invalidateQueries({ queryKey: ["admin-authorizations"] });
+    },
+    onError: () => toast.error("Não foi possível reenviar. Tente novamente em instantes."),
+  });
+
   return (
     <AdminLayout title="Autorizações">
       <Card className="mb-4">
