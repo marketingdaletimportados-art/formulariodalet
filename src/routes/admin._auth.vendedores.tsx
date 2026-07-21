@@ -83,21 +83,31 @@ function VendedoresPage() {
     );
   }, [sellersQuery.data, search]);
 
+  const PUBLIC_DOMAIN = "https://formulariodalet.vercel.app";
+  const buildAuthUrl = (slug: string) => `${PUBLIC_DOMAIN}/autorizacao/${slug}`;
+
   function copyLink(slug: string) {
-    const url = `${window.location.origin}/autorizacao/${slug}`;
-    navigator.clipboard.writeText(url).then(() => {
+    navigator.clipboard.writeText(buildAuthUrl(slug)).then(() => {
       setCopiedSlug(slug);
-      toast.success("Link copiado!");
+      toast.success("Link copiado com sucesso.");
       setTimeout(() => setCopiedSlug((c) => (c === slug ? null : c)), 1500);
     });
   }
 
   function copyRegistrationLink() {
-    const url = `${window.location.origin}/cadastro`;
+    const url = `${PUBLIC_DOMAIN}/cadastro`;
     navigator.clipboard.writeText(url).then(() => {
       toast.success("Link de cadastro copiado.");
     });
   }
+
+  function shareOnWhatsApp(v: Seller) {
+    const message = `Olá, ${v.name}! Este é o seu link exclusivo para autorizações de retirada:\n\n${buildAuthUrl(v.slug)}\n\nGuarde este link e envie aos clientes sempre que precisarem autorizar outra pessoa a retirar uma mercadoria.`;
+    const phoneDigits = v.phone.replace(/\D/g, "");
+    const url = `https://wa.me/${phoneDigits}?text=${encodeURIComponent(message)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
 
   return (
     <AdminLayout title="Vendedores">
