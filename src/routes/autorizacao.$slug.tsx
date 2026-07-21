@@ -144,24 +144,54 @@ function AutorizacaoForm({ seller, slug }: { seller: { id: string; name: string;
 
   async function onSubmit(data: FormData) {
     setSubmitError(null);
+    const normalizedPhone = normalizePhoneE164(data.compradorTelefone);
+    const authCpfDigits = (data.autorizadoCPF ?? "").replace(/\D/g, "");
     try {
       const { data: result, error } = await supabase.functions.invoke(
         "create-withdrawal-authorization",
         {
           body: {
             seller_slug: slug,
-            buyer_name: data.compradorNome,
+            buyer_name: data.compradorNome.trim(),
             buyer_cpf: data.compradorCPF,
-            buyer_phone: data.compradorTelefone,
-            order_number: data.pedido,
-            authorized_person_name: data.autorizadoNome,
-            authorized_person_cpf: data.autorizadoCPF,
-            products_description: data.produtos,
-            customer_notes: data.observacoes || null,
+            buyer_phone: normalizedPhone,
+            order_number: data.pedido.trim(),
+            authorized_person_name: data.autorizadoNome.trim(),
+            authorized_person_cpf: authCpfDigits || null,
+            products_description: data.produtos.trim(),
+            customer_notes: data.observacoes?.trim() || null,
             terms_accepted: true,
           },
         },
       );
+
+      if (error || !result?.success) {
+        console.error("Erro ao criar autorização:", error, result);
+        setSubmitError(
+          (result && typeof result.message === "string" && result.message) ||
+            "Não foi possível gerar a autorização. Verifique os dados e tente novamente.",
+        );
+        return;
+      }
+
+      setSuccess({
+        protocol: result.protocol,
+        buyerName: data.compradorNome.trim(),
+        authorizedName: data.autorizadoNome.trim(),
+        orderNumber: data.pedido.trim(),
+        sellerName: seller.name,
+        authorizationId: result.authorization_id,
+        pdfSignedUrl: result.pdf_generated ? (result.pdf_download_url ?? null) : null,
+        pdfFilename: result.pdf_generated ? `${result.protocol}.pdf` : null,
+        pdfError: result.pdf_generated
+          ? null
+          : "A autorização foi salva, mas ocorreu um erro ao gerar o PDF. Entre em contato com seu vendedor para receber o documento.",
+      });
+    } catch (err) {
+      console.error("Erro ao criar autorização:", err);
+      setSubmitError("Não foi possível gerar a autorização. Verifique sua conexão e tente novamente.");
+    }
+  }
 
       if (error || !result?.success) {
         console.error("Erro ao criar autorização:", error, result);
