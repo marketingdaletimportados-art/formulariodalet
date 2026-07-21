@@ -150,6 +150,10 @@ export type Database = {
           terms_accepted: boolean
           terms_accepted_at: string
           updated_at: string
+          webhook_attempts: number
+          webhook_error: string | null
+          webhook_sent_at: string | null
+          webhook_status: string
         }
         Insert: {
           authorized_person_cpf: string
@@ -176,6 +180,10 @@ export type Database = {
           terms_accepted: boolean
           terms_accepted_at: string
           updated_at?: string
+          webhook_attempts?: number
+          webhook_error?: string | null
+          webhook_sent_at?: string | null
+          webhook_status?: string
         }
         Update: {
           authorized_person_cpf?: string
@@ -202,6 +210,10 @@ export type Database = {
           terms_accepted?: boolean
           terms_accepted_at?: string
           updated_at?: string
+          webhook_attempts?: number
+          webhook_error?: string | null
+          webhook_sent_at?: string | null
+          webhook_status?: string
         }
         Relationships: [
           {
