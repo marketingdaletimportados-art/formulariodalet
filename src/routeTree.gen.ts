@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AutorizacaoSlugRouteImport } from './routes/autorizacao.$slug'
@@ -23,6 +24,11 @@ import { Route as AdminAuthAutorizacoesRouteImport } from './routes/admin._auth.
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CadastroRoute = CadastroRouteImport.update({
+  id: '/cadastro',
+  path: '/cadastro',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -73,6 +79,7 @@ const AdminAuthAutorizacoesRoute = AdminAuthAutorizacoesRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cadastro': typeof CadastroRoute
   '/reset-password': typeof ResetPasswordRoute
   '/admin': typeof AdminAuthRouteWithChildren
   '/autorizacao/$slug': typeof AutorizacaoSlugRoute
@@ -85,6 +92,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cadastro': typeof CadastroRoute
   '/reset-password': typeof ResetPasswordRoute
   '/admin': typeof AdminIndexRoute
   '/autorizacao/$slug': typeof AutorizacaoSlugRoute
@@ -97,6 +105,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cadastro': typeof CadastroRoute
   '/reset-password': typeof ResetPasswordRoute
   '/admin/_auth': typeof AdminAuthRouteWithChildren
   '/autorizacao/$slug': typeof AutorizacaoSlugRoute
@@ -111,6 +120,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/cadastro'
     | '/reset-password'
     | '/admin'
     | '/autorizacao/$slug'
@@ -123,6 +133,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/cadastro'
     | '/reset-password'
     | '/admin'
     | '/autorizacao/$slug'
@@ -134,6 +145,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/cadastro'
     | '/reset-password'
     | '/admin/_auth'
     | '/autorizacao/$slug'
@@ -147,6 +159,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CadastroRoute: typeof CadastroRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   AdminAuthRoute: typeof AdminAuthRouteWithChildren
   AutorizacaoSlugRoute: typeof AutorizacaoSlugRoute
@@ -160,6 +173,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cadastro': {
+      id: '/cadastro'
+      path: '/cadastro'
+      fullPath: '/cadastro'
+      preLoaderRoute: typeof CadastroRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -250,6 +270,7 @@ const AdminAuthRouteWithChildren = AdminAuthRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CadastroRoute: CadastroRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   AdminAuthRoute: AdminAuthRouteWithChildren,
   AutorizacaoSlugRoute: AutorizacaoSlugRoute,
