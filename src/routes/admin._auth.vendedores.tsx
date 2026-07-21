@@ -15,7 +15,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Search, Pencil, Power, Copy, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { slugify, maskPhone } from "@/lib/formatters";
+import { slugify, maskPhone, normalizePhoneE164 } from "@/lib/formatters";
 
 export const Route = createFileRoute("/admin/_auth/vendedores")({
   head: () => ({ meta: [{ title: "Vendedores — Dalet Importados" }] }),
@@ -191,7 +191,12 @@ function SellerFormDialog({ open, seller, onClose }: {
       setName(seller?.name ?? "");
       setSlug(seller?.slug ?? "");
       setSlugTouched(!!seller);
-      setPhone(seller?.phone ?? "");
+      const rawPhone = seller?.phone ?? "";
+      const digits = rawPhone.replace(/\D/g, "");
+      const local = digits.startsWith("55") && (digits.length === 12 || digits.length === 13)
+        ? digits.slice(2)
+        : digits;
+      setPhone(local ? maskPhone(local) : "");
       setDepartment(seller?.department ?? "");
       setActive(seller?.active ?? true);
       setError(null);
@@ -207,12 +212,14 @@ function SellerFormDialog({ open, seller, onClose }: {
     setError(null);
     const cleanName = name.trim();
     const cleanSlug = slugify(slug);
-    const cleanPhone = phone.trim();
+    const normalizedPhone = normalizePhoneE164(phone);
     if (cleanName.length < 3) return setError("Informe o nome completo do vendedor.");
     if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(cleanSlug)) {
       return setError("Slug inválido. Use apenas letras minúsculas, números e hífens.");
     }
-    if (cleanPhone.replace(/\D/g, "").length < 10) return setError("Informe um WhatsApp válido.");
+    if (!normalizedPhone) {
+      return setError("Informe um WhatsApp válido (com DDD). Ex: (67) 99955-0851.");
+    }
 
     setSaving(true);
     // check slug uniqueness
@@ -227,7 +234,7 @@ function SellerFormDialog({ open, seller, onClose }: {
     const payload = {
       name: cleanName,
       slug: cleanSlug,
-      phone: cleanPhone,
+      phone: normalizedPhone,
       department: department.trim() || null,
       active,
     };
