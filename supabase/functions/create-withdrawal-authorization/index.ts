@@ -412,14 +412,16 @@ Deno.serve(async (req) => {
   }
 
   // Whitelist / normalize
+  const rawAuthCpf = digits(String(payload.authorized_person_cpf ?? ""));
+  const normalizedPhone = normalizePhoneE164(String(payload.buyer_phone ?? ""));
   const input = {
     seller_slug: trimStr(payload.seller_slug, 80).toLowerCase(),
     buyer_name: trimStr(payload.buyer_name, 120),
     buyer_cpf: digits(String(payload.buyer_cpf ?? "")),
-    buyer_phone: digits(String(payload.buyer_phone ?? "")),
-    order_number: trimStr(payload.order_number, 30),
+    buyer_phone: normalizedPhone ?? "",
+    order_number: trimStr(payload.order_number, 40),
     authorized_person_name: trimStr(payload.authorized_person_name, 120),
-    authorized_person_cpf: digits(String(payload.authorized_person_cpf ?? "")),
+    authorized_person_cpf: rawAuthCpf, // "" quando não informado
     products_description: trimStr(payload.products_description, 1000),
     customer_notes: payload.customer_notes == null
       ? null
@@ -430,19 +432,18 @@ Deno.serve(async (req) => {
   // Validation
   const errors: string[] = [];
   if (!input.seller_slug) errors.push("Vendedor não informado.");
-  if (input.buyer_name.length < 3) errors.push("Nome do comprador inválido.");
-  if (!isValidCPF(input.buyer_cpf)) errors.push("CPF do comprador inválido.");
-  if (input.buyer_phone.length < 10 || input.buyer_phone.length > 11)
-    errors.push("Telefone do comprador inválido.");
-  if (!input.order_number) errors.push("Número do pedido é obrigatório.");
-  if (input.authorized_person_name.length < 3)
-    errors.push("Nome da pessoa autorizada inválido.");
-  if (!isValidCPF(input.authorized_person_cpf))
-    errors.push("CPF da pessoa autorizada inválido.");
-  if (input.products_description.length < 3)
-    errors.push("Descreva os produtos autorizados.");
-  if (!input.terms_accepted)
-    errors.push("É necessário aceitar o termo de autorização.");
+  if (!isValidPersonName(input.buyer_name)) errors.push("Informe o nome completo do comprador.");
+  if (!isValidCPF(input.buyer_cpf)) errors.push("Informe um CPF válido para o comprador.");
+  if (!normalizedPhone) errors.push("Informe um WhatsApp válido com DDD.");
+  if (!isValidOrderNumber(input.order_number)) errors.push("Informe o número do pedido (letras, números, hífen ou barra).");
+  if (!isValidPersonName(input.authorized_person_name)) errors.push("Informe o nome completo da pessoa autorizada.");
+  if (input.authorized_person_cpf.length > 0 && !isValidCPF(input.authorized_person_cpf)) {
+    errors.push("Informe um CPF válido para a pessoa autorizada ou deixe em branco.");
+  }
+  if (input.products_description.length < 3 || !/\p{L}/u.test(input.products_description)) {
+    errors.push("Descreva os produtos que serão retirados.");
+  }
+  if (!input.terms_accepted) errors.push("É necessário aceitar o termo de autorização.");
 
   if (errors.length > 0) {
     return jsonResponse(
