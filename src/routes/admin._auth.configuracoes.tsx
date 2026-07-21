@@ -210,6 +210,18 @@ function SettingsPage() {
                     </Button>
                   </div>
                 </form>
+
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-md border bg-muted/40 p-3">
+                  <div className="text-sm">
+                    <div className="font-medium">Teste de envio WhatsApp</div>
+                    <div className="text-xs text-muted-foreground">
+                      Envie uma mensagem de teste para um vendedor sem criar autorização.
+                    </div>
+                  </div>
+                  <Button asChild variant="outline" size="sm">
+                    <a href="/admin/teste-whatsapp">Abrir ferramenta de teste</a>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 

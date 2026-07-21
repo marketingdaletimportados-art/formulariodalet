@@ -124,6 +124,56 @@ export type Database = {
           },
         ]
       }
+      webhook_test_logs: {
+        Row: {
+          created_at: string
+          error: string | null
+          http_status: number | null
+          id: string
+          response_excerpt: string | null
+          seller_id: string | null
+          seller_name: string
+          seller_phone: string
+          success: boolean
+          triggered_by: string | null
+          with_pdf: boolean
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          http_status?: number | null
+          id?: string
+          response_excerpt?: string | null
+          seller_id?: string | null
+          seller_name: string
+          seller_phone: string
+          success: boolean
+          triggered_by?: string | null
+          with_pdf?: boolean
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          http_status?: number | null
+          id?: string
+          response_excerpt?: string | null
+          seller_id?: string | null
+          seller_name?: string
+          seller_phone?: string
+          success?: boolean
+          triggered_by?: string | null
+          with_pdf?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_test_logs_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "sellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       withdrawal_authorizations: {
         Row: {
           authorized_person_cpf: string
