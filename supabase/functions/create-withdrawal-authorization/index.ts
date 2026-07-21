@@ -79,6 +79,32 @@ function isValidCPF(raw: string) {
   return d2 === parseInt(cpf[10]);
 }
 
+function isValidPersonName(v: string): boolean {
+  const s = (v ?? "").trim();
+  if (s.length < 3) return false;
+  if (/\d/.test(s)) return false;
+  if (!/^[\p{L}\s'’\-]+$/u.test(s)) return false;
+  const letters = (s.match(/\p{L}/gu) ?? []).length;
+  return letters >= 2;
+}
+
+function isValidOrderNumber(v: string): boolean {
+  const s = (v ?? "").trim();
+  if (s.length < 1 || s.length > 40) return false;
+  return /^[A-Za-z0-9\-\/_]+$/.test(s);
+}
+
+function normalizePhoneE164(v: string): string | null {
+  const d = digits(v);
+  if (!d) return null;
+  let out = d;
+  if ((d.length === 10 || d.length === 11) && !d.startsWith("55")) {
+    out = "55" + d;
+  }
+  if (out.length < 12 || out.length > 15) return null;
+  return out;
+}
+
 function trimStr(v: unknown, max: number): string {
   if (typeof v !== "string") return "";
   return v.trim().slice(0, max);
@@ -154,7 +180,7 @@ type PdfData = {
   termsAcceptedAt: string;
   seller: { name: string; department: string | null };
   buyer: { name: string; cpf: string; phone: string; orderNumber: string };
-  authorized: { name: string; cpf: string };
+  authorized: { name: string; cpf: string | null };
   products: string;
   notes: string | null;
 };
@@ -319,9 +345,11 @@ async function renderPdf(data: PdfData): Promise<Uint8Array> {
   ]);
 
   heading("PESSOA AUTORIZADA PARA RETIRADA");
+  const authCpfDigits = data.authorized.cpf ? digits(data.authorized.cpf) : "";
+  const authCpfDisplay = authCpfDigits.length === 11 ? maskCpfDoc(authCpfDigits) : "Não informado";
   kvGrid([
     ["Nome completo", data.authorized.name],
-    ["CPF", maskCpfDoc(data.authorized.cpf)],
+    ["CPF", authCpfDisplay],
   ]);
 
   heading("PRODUTOS AUTORIZADOS PARA RETIRADA");
@@ -333,7 +361,7 @@ async function renderPdf(data: PdfData): Promise<Uint8Array> {
   }
 
   heading("TERMO DE AUTORIZACAO");
-  const termo = `Eu, ${data.buyer.name}, inscrito(a) no CPF nº ${maskCpfDoc(data.buyer.cpf)}, autorizo ${data.authorized.name}, inscrito(a) no CPF nº ${maskCpfDoc(data.authorized.cpf)}, a retirar em meu nome os produtos descritos neste documento, referentes ao pedido nº ${data.buyer.orderNumber}, adquirido na Dalet Importados.
+  const termo = `Eu, ${data.buyer.name}, inscrito(a) no CPF nº ${maskCpfDoc(data.buyer.cpf)}, autorizo ${data.authorized.name}, CPF ${authCpfDisplay}, a retirar em meu nome os produtos descritos neste documento, referentes ao pedido nº ${data.buyer.orderNumber}, adquirido na Dalet Importados.
 
 Declaro que todas as informações prestadas são verdadeiras e assumo total responsabilidade por esta autorização.
 
@@ -384,14 +412,16 @@ Deno.serve(async (req) => {
   }
 
   // Whitelist / normalize
+  const rawAuthCpf = digits(String(payload.authorized_person_cpf ?? ""));
+  const normalizedPhone = normalizePhoneE164(String(payload.buyer_phone ?? ""));
   const input = {
     seller_slug: trimStr(payload.seller_slug, 80).toLowerCase(),
     buyer_name: trimStr(payload.buyer_name, 120),
     buyer_cpf: digits(String(payload.buyer_cpf ?? "")),
-    buyer_phone: digits(String(payload.buyer_phone ?? "")),
-    order_number: trimStr(payload.order_number, 30),
+    buyer_phone: normalizedPhone ?? "",
+    order_number: trimStr(payload.order_number, 40),
     authorized_person_name: trimStr(payload.authorized_person_name, 120),
-    authorized_person_cpf: digits(String(payload.authorized_person_cpf ?? "")),
+    authorized_person_cpf: rawAuthCpf, // "" quando não informado
     products_description: trimStr(payload.products_description, 1000),
     customer_notes: payload.customer_notes == null
       ? null
@@ -402,19 +432,18 @@ Deno.serve(async (req) => {
   // Validation
   const errors: string[] = [];
   if (!input.seller_slug) errors.push("Vendedor não informado.");
-  if (input.buyer_name.length < 3) errors.push("Nome do comprador inválido.");
-  if (!isValidCPF(input.buyer_cpf)) errors.push("CPF do comprador inválido.");
-  if (input.buyer_phone.length < 10 || input.buyer_phone.length > 11)
-    errors.push("Telefone do comprador inválido.");
-  if (!input.order_number) errors.push("Número do pedido é obrigatório.");
-  if (input.authorized_person_name.length < 3)
-    errors.push("Nome da pessoa autorizada inválido.");
-  if (!isValidCPF(input.authorized_person_cpf))
-    errors.push("CPF da pessoa autorizada inválido.");
-  if (input.products_description.length < 3)
-    errors.push("Descreva os produtos autorizados.");
-  if (!input.terms_accepted)
-    errors.push("É necessário aceitar o termo de autorização.");
+  if (!isValidPersonName(input.buyer_name)) errors.push("Informe o nome completo do comprador.");
+  if (!isValidCPF(input.buyer_cpf)) errors.push("Informe um CPF válido para o comprador.");
+  if (!normalizedPhone) errors.push("Informe um WhatsApp válido com DDD.");
+  if (!isValidOrderNumber(input.order_number)) errors.push("Informe o número do pedido (letras, números, hífen ou barra).");
+  if (!isValidPersonName(input.authorized_person_name)) errors.push("Informe o nome completo da pessoa autorizada.");
+  if (input.authorized_person_cpf.length > 0 && !isValidCPF(input.authorized_person_cpf)) {
+    errors.push("Informe um CPF válido para a pessoa autorizada ou deixe em branco.");
+  }
+  if (input.products_description.length < 3 || !/\p{L}/u.test(input.products_description)) {
+    errors.push("Descreva os produtos que serão retirados.");
+  }
+  if (!input.terms_accepted) errors.push("É necessário aceitar o termo de autorização.");
 
   if (errors.length > 0) {
     return jsonResponse(
@@ -458,7 +487,7 @@ Deno.serve(async (req) => {
       buyer_phone: input.buyer_phone,
       order_number: input.order_number,
       authorized_person_name: input.authorized_person_name,
-      authorized_person_cpf: input.authorized_person_cpf,
+      authorized_person_cpf: input.authorized_person_cpf.length === 11 ? input.authorized_person_cpf : null,
       products_description: input.products_description,
       customer_notes: input.customer_notes,
       terms_accepted: true,
@@ -497,7 +526,7 @@ Deno.serve(async (req) => {
       },
       authorized: {
         name: input.authorized_person_name,
-        cpf: input.authorized_person_cpf,
+        cpf: input.authorized_person_cpf.length === 11 ? input.authorized_person_cpf : null,
       },
       products: input.products_description,
       notes: input.customer_notes,

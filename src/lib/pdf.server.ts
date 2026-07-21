@@ -6,7 +6,7 @@ export type AuthorizationPdfData = {
   termsAcceptedAt: string; // ISO
   seller: { name: string; department: string | null };
   buyer: { name: string; cpf: string; phone: string; orderNumber: string };
-  authorized: { name: string; cpf: string };
+  authorized: { name: string; cpf: string | null };
   products: string;
   notes: string | null;
 };
@@ -331,9 +331,11 @@ export async function renderAuthorizationPdf(data: AuthorizationPdfData): Promis
 
   // Authorized
   drawSectionHeading(ctx, "PESSOA AUTORIZADA PARA RETIRADA");
+  const authCpfDigits = (data.authorized.cpf ?? "").replace(/\D/g, "");
+  const authCpfDisplay = authCpfDigits.length === 11 ? maskCpfDoc(authCpfDigits) : "Não informado";
   drawKeyValueGrid(ctx, [
     ["Nome completo", data.authorized.name],
-    ["CPF", maskCpfDoc(data.authorized.cpf)],
+    ["CPF", authCpfDisplay],
   ]);
 
   // Products
@@ -349,8 +351,7 @@ export async function renderAuthorizationPdf(data: AuthorizationPdfData): Promis
   // Authorization text
   drawSectionHeading(ctx, "TERMO DE AUTORIZAÇÃO");
   const buyerCpf = maskCpfDoc(data.buyer.cpf);
-  const authCpf = maskCpfDoc(data.authorized.cpf);
-  const termo = `Eu, ${data.buyer.name}, inscrito(a) no CPF nº ${buyerCpf}, autorizo ${data.authorized.name}, inscrito(a) no CPF nº ${authCpf}, a retirar em meu nome os produtos descritos neste documento, referentes ao pedido nº ${data.buyer.orderNumber}, adquirido na Dalet Importados.
+  const termo = `Eu, ${data.buyer.name}, inscrito(a) no CPF nº ${buyerCpf}, autorizo ${data.authorized.name}, CPF ${authCpfDisplay}, a retirar em meu nome os produtos descritos neste documento, referentes ao pedido nº ${data.buyer.orderNumber}, adquirido na Dalet Importados.
 
 Declaro que todas as informações prestadas são verdadeiras e assumo total responsabilidade por esta autorização.
 

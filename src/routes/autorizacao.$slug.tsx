@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/form";
 import { DaletLogo } from "@/components/dalet-logo";
 import { User, UserCheck, PackageSearch, MessageSquare, FileCheck2, CheckCircle2, AlertTriangle, Loader2, Download } from "lucide-react";
-import { maskCPF, maskPhone, isValidCPF } from "@/lib/formatters";
+import { maskCPF, maskPhone, isValidCPF, isValidPersonName, isValidOrderNumber, normalizePhoneE164 } from "@/lib/formatters";
 
 export const Route = createFileRoute("/autorizacao/$slug")({
   head: () => ({
@@ -28,16 +28,47 @@ export const Route = createFileRoute("/autorizacao/$slug")({
 });
 
 const schema = z.object({
-  compradorNome: z.string().trim().min(3, "Informe o nome completo").max(120, "Máximo de 120 caracteres"),
-  compradorCPF: z.string().refine(isValidCPF, "CPF inválido"),
-  compradorTelefone: z.string().refine(
-    (v) => { const d = v.replace(/\D/g, ""); return d.length >= 10 && d.length <= 11; },
-    "Telefone inválido",
-  ),
-  pedido: z.string().trim().min(1, "Informe o número do pedido").max(30, "Máximo de 30 caracteres"),
-  autorizadoNome: z.string().trim().min(3, "Informe o nome completo").max(120, "Máximo de 120 caracteres"),
-  autorizadoCPF: z.string().refine(isValidCPF, "CPF inválido"),
-  produtos: z.string().trim().min(3, "Descreva os produtos autorizados").max(1000, "Máximo de 1000 caracteres"),
+  compradorNome: z
+    .string()
+    .trim()
+    .max(120, "Máximo de 120 caracteres")
+    .refine((v) => v.length >= 3, "Informe o nome completo.")
+    .refine((v) => !/\d/.test(v), "O nome não pode conter números.")
+    .refine(isValidPersonName, "Informe um nome válido (apenas letras, espaços, apóstrofo e hífen)."),
+  compradorCPF: z
+    .string()
+    .refine((v) => v.replace(/\D/g, "").length > 0, "Informe o CPF.")
+    .refine(isValidCPF, "Informe um CPF válido."),
+  compradorTelefone: z
+    .string()
+    .refine((v) => v.replace(/\D/g, "").length > 0, "Informe o WhatsApp.")
+    .refine((v) => normalizePhoneE164(v) !== null, "Informe um WhatsApp válido com DDD."),
+  pedido: z
+    .string()
+    .trim()
+    .refine((v) => v.length >= 1, "Informe o número do pedido.")
+    .refine(isValidOrderNumber, "Use apenas letras, números, hífen ou barra (máx. 40)."),
+  autorizadoNome: z
+    .string()
+    .trim()
+    .max(120, "Máximo de 120 caracteres")
+    .refine((v) => v.length >= 3, "Informe o nome completo.")
+    .refine((v) => !/\d/.test(v), "O nome não pode conter números.")
+    .refine(isValidPersonName, "Informe um nome válido (apenas letras, espaços, apóstrofo e hífen)."),
+  autorizadoCPF: z
+    .string()
+    .optional()
+    .refine((v) => {
+      const d = (v ?? "").replace(/\D/g, "");
+      if (d.length === 0) return true;
+      return isValidCPF(d);
+    }, "Informe um CPF válido ou deixe em branco."),
+  produtos: z
+    .string()
+    .trim()
+    .refine((v) => v.length >= 3, "Descreva os produtos que serão retirados.")
+    .refine((v) => /\p{L}/u.test(v), "A descrição deve conter letras, não apenas números.")
+    .refine((v) => v.length <= 1000, "Máximo de 1000 caracteres."),
   observacoes: z.string().trim().max(500, "Máximo de 500 caracteres").optional(),
   termo: z.literal(true, { errorMap: () => ({ message: "É necessário confirmar a autorização" }) }),
 });
@@ -113,20 +144,22 @@ function AutorizacaoForm({ seller, slug }: { seller: { id: string; name: string;
 
   async function onSubmit(data: FormData) {
     setSubmitError(null);
+    const normalizedPhone = normalizePhoneE164(data.compradorTelefone);
+    const authCpfDigits = (data.autorizadoCPF ?? "").replace(/\D/g, "");
     try {
       const { data: result, error } = await supabase.functions.invoke(
         "create-withdrawal-authorization",
         {
           body: {
             seller_slug: slug,
-            buyer_name: data.compradorNome,
+            buyer_name: data.compradorNome.trim(),
             buyer_cpf: data.compradorCPF,
-            buyer_phone: data.compradorTelefone,
-            order_number: data.pedido,
-            authorized_person_name: data.autorizadoNome,
-            authorized_person_cpf: data.autorizadoCPF,
-            products_description: data.produtos,
-            customer_notes: data.observacoes || null,
+            buyer_phone: normalizedPhone,
+            order_number: data.pedido.trim(),
+            authorized_person_name: data.autorizadoNome.trim(),
+            authorized_person_cpf: authCpfDigits || null,
+            products_description: data.produtos.trim(),
+            customer_notes: data.observacoes?.trim() || null,
             terms_accepted: true,
           },
         },
@@ -240,9 +273,10 @@ function AutorizacaoForm({ seller, slug }: { seller: { id: string; name: string;
               )} />
               <FormField control={form.control} name="autorizadoCPF" render={({ field }) => (
                 <FormItem className="sm:col-span-2">
-                  <FormLabel>CPF <Req /></FormLabel>
+                  <FormLabel>CPF <span className="text-xs font-normal text-muted-foreground">(opcional)</span></FormLabel>
                   <FormControl>
                     <Input inputMode="numeric" placeholder="000.000.000-00" {...field}
+                      value={field.value ?? ""}
                       onChange={(e) => field.onChange(maskCPF(e.target.value))} />
                   </FormControl>
                   <FormMessage />
@@ -422,9 +456,10 @@ function buildTermo(v: Partial<FormData>) {
   const nomeC = v.compradorNome?.trim() || "[Nome do comprador]";
   const cpfC = v.compradorCPF?.trim() || "[CPF do comprador]";
   const nomeA = v.autorizadoNome?.trim() || "[Nome da pessoa autorizada]";
-  const cpfA = v.autorizadoCPF?.trim() || "[CPF da pessoa autorizada]";
+  const cpfADigits = (v.autorizadoCPF ?? "").replace(/\D/g, "");
+  const cpfA = cpfADigits.length === 11 ? (v.autorizadoCPF as string).trim() : "Não informado";
   const pedido = v.pedido?.trim() || "[Número do pedido]";
-  return `Eu, ${nomeC}, inscrito(a) no CPF ${cpfC}, autorizo ${nomeA}, inscrito(a) no CPF ${cpfA}, a retirar em meu nome os produtos descritos neste formulário, referentes ao pedido nº ${pedido}, adquirido na Dalet Importados.
+  return `Eu, ${nomeC}, inscrito(a) no CPF ${cpfC}, autorizo ${nomeA}, CPF ${cpfA}, a retirar em meu nome os produtos descritos neste formulário, referentes ao pedido nº ${pedido}, adquirido na Dalet Importados.
 
 Declaro que todas as informações prestadas são verdadeiras e assumo total responsabilidade por esta autorização.
 

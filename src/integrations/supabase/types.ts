@@ -176,7 +176,7 @@ export type Database = {
       }
       withdrawal_authorizations: {
         Row: {
-          authorized_person_cpf: string
+          authorized_person_cpf: string | null
           authorized_person_name: string
           buyer_cpf: string
           buyer_name: string
@@ -206,7 +206,7 @@ export type Database = {
           webhook_status: string
         }
         Insert: {
-          authorized_person_cpf: string
+          authorized_person_cpf?: string | null
           authorized_person_name: string
           buyer_cpf: string
           buyer_name: string
@@ -236,7 +236,7 @@ export type Database = {
           webhook_status?: string
         }
         Update: {
-          authorized_person_cpf?: string
+          authorized_person_cpf?: string | null
           authorized_person_name?: string
           buyer_cpf?: string
           buyer_name?: string

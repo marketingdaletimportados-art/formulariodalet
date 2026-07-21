@@ -61,3 +61,26 @@ export function normalizePhoneE164(v: string): string | null {
   if (out.length < 12 || out.length > 15) return null;
   return out;
 }
+
+/**
+ * Valida nome pessoal: apenas letras (com acentos), espaços, apóstrofo e hífen.
+ * Exige pelo menos 3 caracteres e ao menos 2 letras. Rejeita se contiver dígitos.
+ */
+export function isValidPersonName(v: string): boolean {
+  const s = v.trim();
+  if (s.length < 3) return false;
+  if (/\d/.test(s)) return false;
+  if (!/^[\p{L}\s'’\-]+$/u.test(s)) return false;
+  const letterCount = (s.match(/\p{L}/gu) ?? []).length;
+  return letterCount >= 2;
+}
+
+/**
+ * Valida número do pedido: letras, números, hífen, barra e underscore.
+ * 1 a 40 caracteres, não pode ser somente espaços.
+ */
+export function isValidOrderNumber(v: string): boolean {
+  const s = v.trim();
+  if (s.length < 1 || s.length > 40) return false;
+  return /^[A-Za-z0-9\-\/_]+$/.test(s);
+}
