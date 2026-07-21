@@ -193,34 +193,6 @@ function AutorizacaoForm({ seller, slug }: { seller: { id: string; name: string;
     }
   }
 
-      if (error || !result?.success) {
-        console.error("Erro ao criar autorização:", error, result);
-        setSubmitError(
-          (result && typeof result.message === "string" && result.message) ||
-            "Não foi possível gerar a autorização. Verifique os dados e tente novamente.",
-        );
-        return;
-      }
-
-      setSuccess({
-        protocol: result.protocol,
-        buyerName: data.compradorNome.trim(),
-        authorizedName: data.autorizadoNome.trim(),
-        orderNumber: data.pedido.trim(),
-        sellerName: seller.name,
-        authorizationId: result.authorization_id,
-        pdfSignedUrl: result.pdf_generated ? (result.pdf_download_url ?? null) : null,
-        pdfFilename: result.pdf_generated ? `${result.protocol}.pdf` : null,
-        pdfError: result.pdf_generated
-          ? null
-          : "A autorização foi salva, mas ocorreu um erro ao gerar o PDF. Entre em contato com seu vendedor para receber o documento.",
-      });
-    } catch (err) {
-      console.error("Erro ao criar autorização:", err);
-      setSubmitError("Não foi possível gerar a autorização. Verifique sua conexão e tente novamente.");
-    }
-  }
-
   if (success) {
     return <SuccessScreen info={success} />;
   }
