@@ -29,6 +29,7 @@ type Seller = {
   phone: string;
   department: string | null;
   active: boolean;
+  registration_source?: string | null;
 };
 
 function VendedoresPage() {
