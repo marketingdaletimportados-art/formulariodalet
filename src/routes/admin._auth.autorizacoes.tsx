@@ -210,6 +210,7 @@ function AutorizacoesPage() {
                 <TableHead>Vendedor</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>PDF</TableHead>
+                <TableHead>WhatsApp</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
