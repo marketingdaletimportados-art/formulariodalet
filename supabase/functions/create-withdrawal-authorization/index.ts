@@ -16,6 +16,39 @@ const CORS_HEADERS = {
 
 const BUCKET = "withdrawal-authorizations";
 const SIGNED_URL_TTL_SECONDS = 15 * 60;
+const WEBHOOK_TIMEOUT_MS = 20_000;
+
+type WebhookOutcome =
+  | { ok: true }
+  | { ok: false; error: string };
+
+async function sendN8nWebhook(payload: Record<string, unknown>): Promise<WebhookOutcome> {
+  const webhookUrl = Deno.env.get("N8N_WEBHOOK_URL");
+  const webhookSecret = Deno.env.get("N8N_WEBHOOK_SECRET");
+  if (!webhookUrl || !webhookSecret) {
+    return { ok: false, error: "webhook_not_configured" };
+  }
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), WEBHOOK_TIMEOUT_MS);
+  try {
+    const response = await fetch(webhookUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-webhook-secret": webhookSecret,
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+    if (response.status >= 200 && response.status < 300) return { ok: true };
+    return { ok: false, error: `http_${response.status}` };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "unknown";
+    return { ok: false, error: message.includes("aborted") ? "timeout" : message.slice(0, 200) };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
 // ------------------------------ helpers ------------------------------
 
