@@ -79,6 +79,32 @@ function isValidCPF(raw: string) {
   return d2 === parseInt(cpf[10]);
 }
 
+function isValidPersonName(v: string): boolean {
+  const s = (v ?? "").trim();
+  if (s.length < 3) return false;
+  if (/\d/.test(s)) return false;
+  if (!/^[\p{L}\s'’\-]+$/u.test(s)) return false;
+  const letters = (s.match(/\p{L}/gu) ?? []).length;
+  return letters >= 2;
+}
+
+function isValidOrderNumber(v: string): boolean {
+  const s = (v ?? "").trim();
+  if (s.length < 1 || s.length > 40) return false;
+  return /^[A-Za-z0-9\-\/_]+$/.test(s);
+}
+
+function normalizePhoneE164(v: string): string | null {
+  const d = digits(v);
+  if (!d) return null;
+  let out = d;
+  if ((d.length === 10 || d.length === 11) && !d.startsWith("55")) {
+    out = "55" + d;
+  }
+  if (out.length < 12 || out.length > 15) return null;
+  return out;
+}
+
 function trimStr(v: unknown, max: number): string {
   if (typeof v !== "string") return "";
   return v.trim().slice(0, max);
