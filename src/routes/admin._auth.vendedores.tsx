@@ -144,7 +144,14 @@ function VendedoresPage() {
               )}
               {filtered.map((v) => (
                 <TableRow key={v.id}>
-                  <TableCell className="font-medium">{v.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex flex-col gap-1">
+                      <span>{v.name}</span>
+                      {v.registration_source === "public_registration" && (
+                        <Badge variant="outline" className="w-fit text-[10px] font-normal">Cadastro público</Badge>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>{v.department ?? "—"}</TableCell>
                   <TableCell>{v.phone}</TableCell>
                   <TableCell className="font-mono text-xs">/autorizacao/{v.slug}</TableCell>
